@@ -1,0 +1,2392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#2e1065" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Rumi Word Quest" />
+  <title>Rumi's K-Pop Demon Hunters: Word Star</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts for Kid-Friendly K-Pop Aesthetic -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <!-- JSZip for generating the downloadable PWA .zip bundle -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+  <!-- QRCode Generator Library for instant mobile scanning -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <!-- Dynamic App Icons (Populated at startup with 192x192 & 512x512 PNGs + SVG) -->
+  <link id="dynamicFavicon" rel="icon" type="image/png" />
+  <link id="dynamicAppleIcon" rel="apple-touch-icon" sizes="192x192" />
+
+  <style>
+    :root {
+      --font-display: 'Fredoka', sans-serif;
+      --font-body: 'Nunito', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: radial-gradient(circle at 50% 0%, #4c1d95 0%, #1e1b4b 55%, #0f172a 100%);
+      color: #ffffff;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100dvh;
+      width: 100vw;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .font-display {
+      font-family: var(--font-display);
+    }
+
+    /* Animated Stage Background Lights */
+    .stage-beam {
+      position: absolute;
+      top: -20%;
+      width: 160px;
+      height: 120%;
+      background: linear-gradient(180deg, rgba(236, 72, 153, 0.22) 0%, rgba(168, 85, 247, 0.05) 70%, transparent 100%);
+      transform-origin: top center;
+      pointer-events: none;
+      filter: blur(12px);
+      z-index: 0;
+    }
+    .beam-1 { left: 10%; animation: swayBeam1 7s ease-in-out infinite alternate; }
+    .beam-2 { right: 10%; background: linear-gradient(180deg, rgba(34, 211, 238, 0.22) 0%, rgba(59, 130, 246, 0.05) 70%, transparent 100%); animation: swayBeam2 8s ease-in-out infinite alternate; }
+    .beam-3 { left: 40%; background: linear-gradient(180deg, rgba(250, 204, 21, 0.16) 0%, transparent 80%); animation: swayBeam3 6s ease-in-out infinite alternate; }
+
+    @keyframes swayBeam1 { 0% { transform: rotate(-18deg); } 100% { transform: rotate(12deg); } }
+    @keyframes swayBeam2 { 0% { transform: rotate(18deg); } 100% { transform: rotate(-14deg); } }
+    @keyframes swayBeam3 { 0% { transform: rotate(-8deg) scaleX(0.9); } 100% { transform: rotate(8deg) scaleX(1.2); } }
+
+    /* Character Animations */
+    @keyframes idleFloat {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-6px) rotate(1.2deg); }
+    }
+    @keyframes happyJump {
+      0%, 100% { transform: translateY(0) scale(1); }
+      25% { transform: translateY(-18px) scale(1.08) rotate(-3deg); }
+      50% { transform: translateY(-4px) scale(0.96) rotate(3deg); }
+      75% { transform: translateY(-14px) scale(1.05) rotate(-2deg); }
+    }
+    @keyframes gentleWiggle {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-7px) rotate(-2deg); }
+      40% { transform: translateX(7px) rotate(2deg); }
+      60% { transform: translateX(-5px); }
+      80% { transform: translateX(5px); }
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 12px rgba(236, 72, 153, 0.6), inset 0 0 8px rgba(236, 72, 153, 0.3); }
+      50% { box-shadow: 0 0 22px rgba(34, 211, 238, 0.9), inset 0 0 12px rgba(34, 211, 238, 0.5); }
+    }
+    @keyframes emojiBounce {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-5px) scale(1.07); }
+    }
+
+    .char-idle { animation: idleFloat 3.2s ease-in-out infinite; }
+    .char-idle-delay-1 { animation: idleFloat 3.5s ease-in-out 0.4s infinite; }
+    .char-idle-delay-2 { animation: idleFloat 2.9s ease-in-out 0.8s infinite; }
+    .char-jump { animation: happyJump 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) infinite; }
+    .shake-wrong { animation: gentleWiggle 0.45s ease-in-out; }
+    .emoji-float { display: inline-block; animation: emojiBounce 2.6s ease-in-out infinite; }
+
+    /* Custom K-Pop 3D Pill Buttons */
+    .kpop-btn {
+      transition: all 0.14s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 6px 0 rgba(15, 23, 42, 0.45), 0 8px 15px rgba(0, 0, 0, 0.25);
+    }
+    .kpop-btn:active:not(:disabled) {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 rgba(15, 23, 42, 0.45), 0 3px 6px rgba(0, 0, 0, 0.25);
+    }
+
+    .option-card {
+      transition: all 0.16s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 6px 0 #31105f, 0 8px 16px rgba(0,0,0,0.3);
+    }
+    .option-card:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #31105f;
+    }
+    .option-card.correct-choice {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+      border-color: #6ee7b7 !important;
+      color: #ffffff !important;
+      box-shadow: 0 6px 0 #065f46, 0 0 24px rgba(16, 185, 129, 0.7) !important;
+    }
+    .option-card.wrong-choice {
+      background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%) !important;
+      border-color: #fda4af !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 0 #881337 !important;
+    }
+    .option-card.selected-preview {
+      border-color: #fde047 !important;
+      box-shadow: 0 6px 0 #ca8a04, 0 0 18px rgba(250, 204, 21, 0.75) !important;
+      transform: translateY(-2px);
+    }
+
+    /* Word Highlight during Speech */
+    .word-token {
+      transition: all 0.2s ease;
+      display: inline-block;
+      padding: 1px 4px;
+      border-radius: 8px;
+    }
+    .word-token.speaking-now {
+      background-color: #facc15;
+      color: #1e1b4b !important;
+      transform: scale(1.12) translateY(-2px);
+      box-shadow: 0 4px 12px rgba(250, 204, 21, 0.6);
+    }
+
+    .blank-slot {
+      animation: pulseGlow 2.5s infinite;
+    }
+
+    /* Custom Scrollbar for Level Modal */
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: rgba(236, 72, 153, 0.6);
+      border-radius: 10px;
+    }
+  </style>
+
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#0D1117">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+</head>
+<body>
+
+  <!-- Stage Lighting Effects -->
+  <div class="stage-beam beam-1"></div>
+  <div class="stage-beam beam-2"></div>
+  <div class="stage-beam beam-3"></div>
+
+  <!-- Confetti Canvas Overlay -->
+  <canvas id="confettiCanvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
+
+  <!-- Toast Notification Banner -->
+  <div id="toastBanner" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 -translate-y-4 transition-all duration-300 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-display font-bold text-xs sm:text-sm px-4 py-2.5 rounded-2xl shadow-[0_8px_25px_rgba(16,185,129,0.55)] border-2 border-emerald-200 flex items-center gap-2">
+    <i class="ph-fill ph-check-circle text-lg text-yellow-300"></i>
+    <span id="toastText">App Link Copied!</span>
+  </div>
+
+  <!-- Mobile-First App Shell (Max 480px width on desktop, 100% on mobile) -->
+  <div id="appShell" class="relative z-10 w-full max-w-[480px] h-full max-h-[940px] flex flex-col justify-between p-2.5 sm:p-3.5 overflow-hidden select-none">
+
+    <!-- TOP NAVIGATION & STATUS BAR -->
+    <header class="flex items-center justify-between gap-1.5 bg-indigo-950/85 backdrop-blur-md border-2 border-purple-400/40 rounded-2xl px-2.5 py-1.5 shadow-lg shrink-0">
+      <!-- Interactive Custom K-Pop Demon Hunters App Icon Badge + Stage Selector -->
+      <div class="flex items-center gap-1.5">
+        <button id="appIconHeaderBadge" onclick="openInfoModal()" class="kpop-btn relative w-9 h-9 rounded-xl overflow-hidden border-2 border-yellow-300 shadow-[0_0_12px_rgba(236,72,153,0.6)] shrink-0 group" title="Rumi App Icon & PWA Setup">
+          <svg viewBox="0 0 120 120" class="w-full h-full">
+            <defs>
+              <linearGradient id="iconBgGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#ec4899" />
+                <stop offset="50%" stop-color="#7e22ce" />
+                <stop offset="100%" stop-color="#1e1b4b" />
+              </linearGradient>
+            </defs>
+            <rect width="120" height="120" rx="26" fill="url(#iconBgGrad)" />
+            <circle cx="60" cy="60" r="46" fill="none" stroke="#fde047" stroke-width="3" stroke-dasharray="6 4" opacity="0.7" />
+            <!-- Demon-Hunter Cat-Ear Crown & Star Mic Icon -->
+            <polygon points="26,44 36,20 50,36" fill="#f43f5e" stroke="#fde047" stroke-width="2.5" />
+            <polygon points="94,44 84,20 70,36" fill="#f43f5e" stroke="#fde047" stroke-width="2.5" />
+            <polygon points="60,22 69,44 93,46 75,61 80,85 60,72 40,85 45,61 27,46 51,44" fill="#fde047" stroke="#ffffff" stroke-width="2" />
+            <text x="60" y="106" font-family="Fredoka, sans-serif" font-weight="900" font-size="22" fill="#ffffff" text-anchor="middle">RUMI</text>
+          </svg>
+        </button>
+
+        <!-- Level Pill Button (Opens 200 Levels Grid) -->
+        <button id="openLevelsBtn" onclick="openLevelsModal()" class="kpop-btn flex items-center gap-1 bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-500 hover:to-purple-500 text-white font-display font-bold text-xs sm:text-sm px-2.5 py-1.5 rounded-xl border border-pink-300/50">
+          <i class="ph-fill ph-music-notes-simple text-yellow-300 text-sm"></i>
+          <span><span id="levelNumDisplay">1</span>/200</span>
+          <i class="ph-bold ph-caret-down text-[10px] opacity-80"></i>
+        </button>
+      </div>
+
+      <!-- Star & Streak Counters -->
+      <div class="flex items-center gap-1">
+        <div class="flex items-center gap-1 bg-indigo-900/90 border border-yellow-400/40 px-2 py-1 rounded-xl" title="Stars Earned">
+          <span class="text-sm">⭐</span>
+          <span id="starsCountDisplay" class="font-display font-bold text-yellow-300 text-xs sm:text-sm">0</span>
+        </div>
+        <div class="flex items-center gap-1 bg-indigo-900/90 border border-orange-400/40 px-2 py-1 rounded-xl" title="Current Streak">
+          <span class="text-sm">🔥</span>
+          <span id="streakCountDisplay" class="font-display font-bold text-orange-300 text-xs sm:text-sm">0</span>
+        </div>
+      </div>
+
+      <!-- Audio Controls (Turtle Slow Mode, Mute, Offline/Auto-Update & Info) -->
+      <div class="flex items-center gap-1">
+        <button id="turtleSpeedBtn" onclick="toggleTurtleSpeed()" class="kpop-btn w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-indigo-800/90 border border-cyan-400/40 flex items-center justify-center text-base" title="Toggle Slow Reader Turtle Mode">
+          <span id="speedIcon">🐇</span>
+        </button>
+        <button id="muteToggleBtn" onclick="toggleMute()" class="kpop-btn w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-indigo-800/90 border border-pink-400/40 flex items-center justify-center text-white text-base" title="Mute / Unmute Voice">
+          <i id="muteIcon" class="ph-fill ph-speaker-high text-cyan-300"></i>
+        </button>
+        <button id="onlineStatusBtn" onclick="openOnlineModal()" class="kpop-btn px-2 h-8 sm:h-9 rounded-xl bg-emerald-950/90 border border-emerald-400/60 flex items-center gap-1 text-emerald-300 font-display font-bold text-[10px] sm:text-xs" title="Offline Ready, Auto-Update & Live Hosting Manager">
+          <span id="onlineStatusDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="onlineStatusText" class="hidden sm:inline">READY</span>
+          <i class="ph-bold ph-arrows-clockwise text-sm text-yellow-300"></i>
+        </button>
+        <button id="pwaInfoBtn" onclick="openInfoModal()" class="kpop-btn w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-amber-400 to-pink-500 border border-yellow-200 flex items-center justify-center text-indigo-950 font-bold text-base" title="App Icon, Offline Status & ZIP Download">
+          <i class="ph-bold ph-download-simple"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- K-POP DEMON HUNTERS TRIO STAGE (Rumi, Mira, Zoey + Cute Spirit Plushie) -->
+    <section class="relative flex flex-col justify-end pt-1 shrink-0">
+      <!-- Companion Speech Bubble -->
+      <div id="speechBubble" class="relative mx-auto mb-1.5 px-3.5 py-1.5 rounded-2xl bg-white/95 text-indigo-950 font-bold text-xs sm:text-sm shadow-md border-2 border-pink-400 flex items-center gap-2 max-w-[95%] transition-all duration-200">
+        <span id="activeSpeakerBadge" class="px-2 py-0.5 rounded-full text-[11px] font-display font-bold text-white bg-fuchsia-600 uppercase tracking-wider shrink-0">Rumi</span>
+        <p id="companionDialogue" class="truncate">Tap a word to hear it & defeat the Gloomy Note!</p>
+      </div>
+
+      <!-- Trio Avatars Row -->
+      <div class="grid grid-cols-3 gap-2 items-end px-1">
+        <!-- MIRA (Cyan/Blue Dancer & Star Blade) -->
+        <button onclick="selectHero('mira')" id="heroCard-mira" class="group relative flex flex-col items-center p-1.5 rounded-2xl transition-all bg-cyan-950/40 border-2 border-cyan-400/30 hover:border-cyan-300">
+          <div id="avatar-mira" class="w-16 h-16 sm:w-20 sm:h-20 char-idle-delay-1">
+            <!-- Custom SVG Mira -->
+            <svg viewBox="0 0 120 120" class="w-full h-full drop-shadow-[0_4px_8px_rgba(34,211,238,0.5)]">
+              <defs>
+                <linearGradient id="miraHair" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#06b6d4" />
+                  <stop offset="100%" stop-color="#2563eb" />
+                </linearGradient>
+                <linearGradient id="miraOutfit" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#22d3ee" />
+                  <stop offset="100%" stop-color="#1e40af" />
+                </linearGradient>
+              </defs>
+              <!-- Glowing Aura Star -->
+              <circle cx="60" cy="62" r="46" fill="rgba(34,211,238,0.15)" />
+              <!-- Back Hair -->
+              <path d="M25,52 C18,75 22,98 32,106 L88,106 C98,98 102,75 95,52 Z" fill="url(#miraHair)" />
+              <!-- Cyber Headphones -->
+              <path d="M24,56 A36,36 0 0,1 96,56" fill="none" stroke="#f8fafc" stroke-width="6" stroke-linecap="round"/>
+              <rect x="16" y="46" width="12" height="22" rx="6" fill="#06b6d4" stroke="#fff" stroke-width="2.5"/>
+              <rect x="92" y="46" width="12" height="22" rx="6" fill="#06b6d4" stroke="#fff" stroke-width="2.5"/>
+              <!-- Starlight Demon-Hunter Wand -->
+              <line x1="96" y1="98" x2="110" y2="62" stroke="#fde047" stroke-width="4" stroke-linecap="round" />
+              <polygon points="110,50 113,58 120,58 115,63 117,70 110,66 103,70 105,63 100,58 107,58" fill="#fef08a" stroke="#f59e0b" stroke-width="1.5"/>
+              <!-- Body / K-Pop Jacket -->
+              <path d="M36,86 Q60,78 84,86 L90,114 L30,114 Z" fill="url(#miraOutfit)" stroke="#fff" stroke-width="2"/>
+              <polygon points="60,90 64,98 56,98" fill="#fde047"/>
+              <!-- Face -->
+              <rect x="34" y="34" width="52" height="48" rx="24" fill="#ffe4e6" />
+              <!--Blush-->
+              <ellipse cx="43" cy="64" rx="5" ry="2.5" fill="#fb7185" opacity="0.6"/>
+              <ellipse cx="77" cy="64" rx="5" ry="2.5" fill="#fb7185" opacity="0.6"/>
+              <!-- Cool Eyes -->
+              <ellipse cx="46" cy="56" rx="4.5" ry="5.5" fill="#0f172a"/>
+              <circle cx="44.5" cy="54" r="1.8" fill="#fff"/>
+              <ellipse cx="74" cy="56" rx="4.5" ry="5.5" fill="#0f172a"/>
+              <circle cx="72.5" cy="54" r="1.8" fill="#fff"/>
+              <!-- Confident Smile -->
+              <path d="M54,67 Q60,73 66,67" fill="none" stroke="#be123c" stroke-width="2.8" stroke-linecap="round"/>
+              <!-- Front Bangs -->
+              <path d="M30,48 Q45,25 62,36 Q78,26 90,48 Q75,38 60,44 Q45,38 30,48 Z" fill="url(#miraHair)" />
+              <!-- Hair Star Clip -->
+              <circle cx="40" cy="38" r="4" fill="#fde047" />
+            </svg>
+          </div>
+          <div class="flex items-center gap-1 -mt-1">
+            <span class="font-display font-bold text-xs text-cyan-200">MIRA</span>
+            <span class="text-[10px] bg-cyan-500/30 px-1.5 rounded text-cyan-100">🎧</span>
+          </div>
+        </button>
+
+        <!-- RUMI (Center Leader - Purple/Magenta Demon Hunter Mic) -->
+        <button onclick="selectHero('rumi')" id="heroCard-rumi" class="group relative flex flex-col items-center p-1.5 rounded-2xl transition-all bg-fuchsia-950/70 border-2 border-pink-400 shadow-[0_0_15px_rgba(236,72,153,0.4)]">
+          <div class="absolute -top-2.5 bg-gradient-to-r from-yellow-300 to-amber-400 text-indigo-950 font-display font-extrabold text-[10px] px-2 py-0.2 rounded-full shadow">
+            ★ LEADER ★
+          </div>
+          <div id="avatar-rumi" class="w-20 h-20 sm:w-24 sm:h-24 char-idle">
+            <!-- Custom SVG Rumi -->
+            <svg viewBox="0 0 120 120" class="w-full h-full drop-shadow-[0_4px_10px_rgba(236,72,153,0.6)]">
+              <defs>
+                <linearGradient id="rumiHair" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#c026d3" />
+                  <stop offset="50%" stop-color="#9333ea" />
+                  <stop offset="100%" stop-color="#4f46e5" />
+                </linearGradient>
+                <linearGradient id="rumiTop" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#ec4899" />
+                  <stop offset="100%" stop-color="#7e22ce" />
+                </linearGradient>
+              </defs>
+              <!-- Magical Halo -->
+              <circle cx="60" cy="60" r="48" fill="rgba(236,72,153,0.18)" />
+              <!-- Twin Space Buns / Demon-Hunter Ribbons -->
+              <circle cx="26" cy="34" r="14" fill="url(#rumiHair)" stroke="#f472b6" stroke-width="2"/>
+              <circle cx="94" cy="34" r="14" fill="url(#rumiHair)" stroke="#f472b6" stroke-width="2"/>
+              <!-- Cute Magical Cat-Ear Headband -->
+              <polygon points="30,34 38,16 48,30" fill="#f43f5e" stroke="#fde047" stroke-width="2"/>
+              <polygon points="90,34 82,16 72,30" fill="#f43f5e" stroke="#fde047" stroke-width="2"/>
+              <!-- Flowing Hair -->
+              <path d="M24,46 C18,75 24,104 34,110 L86,110 C96,104 102,75 96,46 Z" fill="url(#rumiHair)" />
+              <!-- Outfit with Star Shoulder Pads -->
+              <path d="M32,84 Q60,76 88,84 L94,115 L26,115 Z" fill="url(#rumiTop)" stroke="#fde047" stroke-width="2.5"/>
+              <!-- Heart Amulet on Chest -->
+              <path d="M60,98 L54,92 A4,4 0 0,1 60,88 A4,4 0 0,1 66,92 Z" fill="#fde047"/>
+              <!-- Face -->
+              <rect x="33" y="33" width="54" height="50" rx="25" fill="#fff1f2" />
+              <!-- Star Cheek Mark -->
+              <polygon points="80,63 82,66 85,66 82.5,68 83.5,71 80,69 76.5,71 77.5,68 75,66 78,66" fill="#ec4899"/>
+              <ellipse cx="42" cy="64" rx="5" ry="2.5" fill="#fb7185" opacity="0.65"/>
+              <!-- Big Sparkly Anime Eyes -->
+              <ellipse cx="46" cy="56" rx="5.2" ry="6.2" fill="#3b0764"/>
+              <circle cx="44" cy="53.5" r="2.2" fill="#fff"/>
+              <circle cx="48" cy="58" r="1" fill="#f472b6"/>
+              <ellipse cx="74" cy="56" rx="5.2" ry="6.2" fill="#3b0764"/>
+              <circle cx="72" cy="53.5" r="2.2" fill="#fff"/>
+              <circle cx="76" cy="58" r="1" fill="#f472b6"/>
+              <!-- Happy Idol Smile -->
+              <path d="M53,66 Q60,75 67,66 Z" fill="#e11d48" />
+              <path d="M55,69 Q60,72 65,69" fill="#fda4af" />
+              <!-- Purple Bangs -->
+              <path d="M29,48 C36,26 84,26 91,48 C80,36 70,45 60,36 C50,45 40,36 29,48 Z" fill="url(#rumiHair)" />
+              <!-- Star Hairpins -->
+              <circle cx="38" cy="40" r="3.5" fill="#fde047"/>
+              <circle cx="82" cy="40" r="3.5" fill="#22d3ee"/>
+              <!-- Glowing Demon-Hunter Microphone -->
+              <rect x="88" y="78" width="7" height="20" rx="3" transform="rotate(-18 88 78)" fill="#f8fafc" stroke="#475569" stroke-width="1.5"/>
+              <circle cx="88" cy="74" r="8" fill="#ec4899" stroke="#fde047" stroke-width="2"/>
+            </svg>
+          </div>
+          <div class="flex items-center gap-1 -mt-1">
+            <span class="font-display font-bold text-xs text-pink-200">RUMI</span>
+            <span class="text-[10px] bg-pink-500/40 px-1.5 rounded text-pink-100">🎤</span>
+          </div>
+        </button>
+
+        <!-- ZOEY (Pink/Gold Maknae with Twin Tails & Tambourine Shield) -->
+        <button onclick="selectHero('zoey')" id="heroCard-zoey" class="group relative flex flex-col items-center p-1.5 rounded-2xl transition-all bg-amber-950/40 border-2 border-amber-400/30 hover:border-amber-300">
+          <div id="avatar-zoey" class="w-16 h-16 sm:w-20 sm:h-20 char-idle-delay-2">
+            <!-- Custom SVG Zoey -->
+            <svg viewBox="0 0 120 120" class="w-full h-full drop-shadow-[0_4px_8px_rgba(251,191,36,0.5)]">
+              <defs>
+                <linearGradient id="zoeyHair" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#fb7185" />
+                  <stop offset="100%" stop-color="#f59e0b" />
+                </linearGradient>
+                <linearGradient id="zoeyOutfit" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#facc15" />
+                  <stop offset="100%" stop-color="#ec4899" />
+                </linearGradient>
+              </defs>
+              <circle cx="60" cy="62" r="46" fill="rgba(250,204,21,0.15)" />
+              <!-- High Bouncy Pigtails -->
+              <path d="M26,42 Q6,36 12,72 Q20,82 28,64 Z" fill="url(#zoeyHair)" stroke="#fef08a" stroke-width="1.5"/>
+              <path d="M94,42 Q114,36 108,72 Q100,82 92,64 Z" fill="url(#zoeyHair)" stroke="#fef08a" stroke-width="1.5"/>
+              <!-- Outfit -->
+              <path d="M36,86 Q60,78 84,86 L90,114 L30,114 Z" fill="url(#zoeyOutfit)" stroke="#fff" stroke-width="2"/>
+              <!-- Face -->
+              <rect x="34" y="35" width="52" height="48" rx="24" fill="#fff1f2" />
+              <ellipse cx="42" cy="64" rx="5" ry="2.5" fill="#fb7185" opacity="0.7"/>
+              <ellipse cx="78" cy="64" rx="5" ry="2.5" fill="#fb7185" opacity="0.7"/>
+              <!-- Cheerful Wink / Star Eyes -->
+              <ellipse cx="46" cy="56" rx="4.5" ry="5.5" fill="#451a03"/>
+              <circle cx="44.5" cy="54" r="1.8" fill="#fff"/>
+              <path d="M69,56 Q74,50 79,56" fill="none" stroke="#451a03" stroke-width="3.2" stroke-linecap="round"/>
+              <!-- Big Grin -->
+              <path d="M53,66 Q60,74 67,66" fill="none" stroke="#e11d48" stroke-width="3" stroke-linecap="round"/>
+              <!-- Bangs + Heart Shades on Forehead -->
+              <path d="M32,48 Q60,26 88,48 Q74,36 60,42 Q46,36 32,48 Z" fill="url(#zoeyHair)" />
+              <!-- Heart Glasses Prop on Head -->
+              <path d="M45,34 C42,29 36,33 45,40 C54,33 48,29 45,34 Z" fill="#ec4899" stroke="#fff" stroke-width="1.5"/>
+              <path d="M75,34 C72,29 66,33 75,40 C84,33 78,29 75,34 Z" fill="#ec4899" stroke="#fff" stroke-width="1.5"/>
+              <!-- Magical Star Tambourine -->
+              <circle cx="22" cy="88" r="11" fill="#fef08a" stroke="#f59e0b" stroke-width="2.5"/>
+              <circle cx="22" cy="88" r="6" fill="#ec4899"/>
+            </svg>
+          </div>
+          <div class="flex items-center gap-1 -mt-1">
+            <span class="font-display font-bold text-xs text-amber-200">ZOEY</span>
+            <span class="text-[10px] bg-amber-500/30 px-1.5 rounded text-amber-100">🌟</span>
+          </div>
+        </button>
+      </div>
+    </section>
+
+    <!-- MAIN READING STAGE CARD (Emojis + Fill in the Blank Sentence) -->
+    <main class="flex-1 flex flex-col justify-center my-1.5 min-h-0">
+      <div id="questionCard" class="relative w-full h-full flex flex-col justify-between bg-gradient-to-b from-indigo-900/90 via-purple-900/90 to-indigo-950/95 border-2 border-pink-400/60 rounded-3xl p-3.5 sm:p-5 shadow-[0_10px_30px_rgba(0,0,0,0.45)] overflow-hidden">
+
+        <!-- Category Badge & Cute Spirit Demon Target -->
+        <div class="flex items-center justify-between">
+          <span id="themeBadge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-display font-bold bg-purple-800/90 text-pink-200 border border-pink-400/40">
+            <i class="ph-fill ph-sparkle text-yellow-300"></i>
+            <span id="categoryText">Stage & Music</span>
+          </span>
+
+          <!-- Cute Mini "Gloomy Note" Spirit that turns happy when solved! -->
+          <div id="spiritStatusPill" class="flex items-center gap-1.5 bg-indigo-950/90 border border-purple-400/40 px-2.5 py-1 rounded-full text-xs font-bold">
+            <span id="spiritEmoji" class="text-base transition-transform duration-300">👾</span>
+            <span id="spiritLabel" class="text-purple-200 text-[11px]">Shadow Note</span>
+          </div>
+        </div>
+
+        <!-- EMOJI CLUE STAGE -->
+        <div class="flex flex-col items-center justify-center my-auto py-1">
+          <div id="emojiDisplayBox" onclick="speakCurrentSentenceClue()" class="cursor-pointer group relative flex items-center justify-center gap-3 sm:gap-4 px-6 py-2.5 sm:py-3.5 rounded-2xl bg-indigo-950/75 border-2 border-cyan-400/40 shadow-inner hover:border-yellow-300 transition-all" title="Tap to hear sentence clue">
+            <div id="emojiString" class="text-4xl sm:text-5xl tracking-wider emoji-float">
+              🎤 🌟 🎶
+            </div>
+            <button aria-label="Listen to sentence" class="w-9 h-9 rounded-full bg-pink-500 hover:bg-pink-400 text-white flex items-center justify-center shadow-md shrink-0">
+              <i class="ph-fill ph-speaker-high text-lg"></i>
+            </button>
+          </div>
+          <span class="text-[11px] text-cyan-200/80 font-semibold mt-1">
+            <i class="ph-fill ph-hand-tap"></i> Tap emojis to hear the clue!
+          </span>
+        </div>
+
+        <!-- SENTENCE DISPLAY WITH BLANK SLOT -->
+        <div id="sentenceContainer" class="bg-white/95 text-indigo-950 rounded-2xl p-3 sm:p-4 border-2 border-purple-300 shadow-lg text-center flex flex-wrap items-center justify-center gap-x-2 gap-y-2 min-h-[76px] sm:min-h-[88px]">
+          <!-- Dynamically populated tokens + blank slot -->
+        </div>
+
+        <!-- REPLAY / NEXT ACTION BAR (Appears or stays accessible) -->
+        <div class="flex items-center justify-between gap-2 mt-2.5">
+          <button id="readAgainBtn" onclick="readFullSentence(true)" class="kpop-btn flex-1 py-2 px-3 rounded-xl bg-indigo-800 hover:bg-indigo-700 border border-cyan-400/50 text-cyan-200 font-display font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5">
+            <i class="ph-fill ph-speaker-high text-base text-yellow-300"></i>
+            <span>Read Sentence 🔊</span>
+          </button>
+
+          <button id="nextQuestionBtn" onclick="goToNextQuestion()" class="kpop-btn hidden flex-1 py-2 px-4 rounded-xl bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 text-indigo-950 font-display font-extrabold text-sm sm:text-base flex items-center justify-center gap-1.5 border-2 border-white shadow-[0_0_20px_rgba(52,211,153,0.8)]">
+            <span>Next Stage</span>
+            <i class="ph-bold ph-arrow-right text-lg"></i>
+          </button>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- 4 WORD OPTIONS GRID (Large Touch-Friendly Mobile Buttons) -->
+    <section class="shrink-0 pt-1 pb-1">
+      <div class="flex items-center justify-between mb-1.5 px-1">
+        <span class="text-xs font-bold text-pink-200 tracking-wide uppercase flex items-center gap-1">
+          <i class="ph-fill ph-magic-wand text-yellow-300"></i> Pick the missing word:
+        </span>
+        <button id="tapModeToggle" onclick="toggleConfirmMode()" class="text-[11px] bg-indigo-900/90 border border-purple-400/40 px-2.5 py-0.5 rounded-full text-purple-200 hover:text-white font-semibold">
+          Mode: <span id="tapModeLabel" class="text-yellow-300 font-bold">Instant Tap 🔊</span>
+        </button>
+      </div>
+
+      <!-- 2x2 Grid of Word Buttons -->
+      <div id="optionsGrid" class="grid grid-cols-2 gap-2 sm:gap-2.5">
+        <!-- Populated dynamically with 4 buttons -->
+      </div>
+    </section>
+
+    <!-- PROMINENT BOTTOM SHARE APP LINK & PWA ZIP FOOTER BAR -->
+    <footer class="shrink-0 mt-1 bg-indigo-950/90 backdrop-blur-md border-2 border-pink-400/50 rounded-2xl px-2.5 py-1.5 shadow-lg flex items-center justify-between gap-1.5">
+      <!-- App Icon Mini Preview + Share Link Info -->
+      <div onclick="openOnlineModal()" class="flex items-center gap-2 min-w-0 cursor-pointer group" title="Click to set Live URL or scan QR code">
+        <img id="footerAppIconImg" alt="App Icon" class="w-7 h-7 rounded-lg border border-yellow-300 shadow-sm shrink-0 group-hover:scale-105 transition-transform" />
+        <div class="truncate">
+          <div class="font-display font-bold text-[11px] text-pink-200 leading-tight truncate flex items-center gap-1">
+            <span>Share Rumi App</span>
+            <span id="footerNetBadge" class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          </div>
+          <div id="appUrlPreviewText" class="text-[10px] text-cyan-300/90 font-semibold truncate underline decoration-dotted">Tap to share or go live</div>
+        </div>
+      </div>
+
+      <!-- Action Buttons: QR/Live Modal, Share API, Copy Link, Download ZIP -->
+      <div class="flex items-center gap-1 shrink-0">
+        <button onclick="openOnlineModal()" class="kpop-btn px-2 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-display font-bold text-xs flex items-center gap-1 border border-emerald-300/60" title="Go Live Online & QR Code">
+          <i class="ph-bold ph-globe-hemisphere-west text-sm text-yellow-200"></i>
+          <span class="hidden sm:inline">Go Live</span>
+        </button>
+
+        <button onclick="shareAppLink()" class="kpop-btn px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-pink-500 to-fuchsia-600 hover:from-pink-400 hover:to-fuchsia-500 text-white font-display font-bold text-xs flex items-center gap-1 border border-pink-200/60" title="Share App with Friends">
+          <i class="ph-bold ph-share-network text-sm"></i>
+          <span>Share</span>
+        </button>
+
+        <button onclick="copyAppLink()" class="kpop-btn px-2 py-1.5 rounded-xl bg-indigo-800 hover:bg-indigo-700 text-cyan-200 font-display font-bold text-xs flex items-center gap-1 border border-cyan-400/50" title="Copy App Link">
+          <i class="ph-bold ph-link text-sm text-yellow-300"></i>
+          <span id="copyBtnLabel">Copy</span>
+        </button>
+
+        <button onclick="downloadPwaZip()" id="footerZipBtn" class="kpop-btn px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-300 text-indigo-950 font-display font-extrabold text-xs flex items-center gap-1 border border-white" title="Download Complete PWA .ZIP">
+          <i class="ph-bold ph-file-zip text-sm"></i>
+          <span>ZIP</span>
+        </button>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- PUBLISH ONLINE / LIVE LINK & QR CODE MANAGER MODAL -->
+  <div id="onlineModal" class="fixed inset-0 z-40 bg-slate-950/85 backdrop-blur-md hidden flex-col items-center justify-center p-3 sm:p-4">
+    <div class="w-full max-w-[450px] max-h-[92vh] overflow-y-auto custom-scroll bg-indigo-950 border-2 border-emerald-400 rounded-3xl p-4 sm:p-5 flex flex-col gap-3.5 shadow-2xl text-white">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-indigo-800 pb-2.5">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-400 flex items-center justify-center text-emerald-300 text-xl shrink-0">
+            <i class="ph-fill ph-globe-hemisphere-west"></i>
+          </div>
+          <div>
+            <h2 class="font-display font-bold text-base sm:text-lg text-white leading-tight flex items-center gap-2">
+              <span>Live Online & Share Hub</span>
+              <span id="modalNetworkPill" class="px-2 py-0.5 text-[10px] rounded-full bg-emerald-500/30 border border-emerald-400 text-emerald-200 font-extrabold uppercase">Online Ready</span>
+            </h2>
+            <p class="text-[11px] text-cyan-200">Scan QR code, share your public link, or host free in 30s</p>
+          </div>
+        </div>
+        <button onclick="closeOnlineModal()" class="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0">
+          <i class="ph-bold ph-x"></i>
+        </button>
+      </div>
+
+      <!-- Custom Live Public URL Input + Save -->
+      <div class="bg-indigo-900/80 rounded-2xl p-3 border border-cyan-400/40 space-y-2">
+        <label for="customLiveUrlInput" class="block text-xs font-display font-bold text-yellow-300 flex items-center justify-between">
+          <span><i class="ph-bold ph-link-simple"></i> Public App Link (Auto-Detected or Custom)</span>
+          <button onclick="resetCustomLiveUrl()" class="text-[10px] text-cyan-300 underline hover:text-white">Reset to Current</button>
+        </label>
+        <div class="flex gap-1.5">
+          <input
+            id="customLiveUrlInput"
+            type="url"
+            placeholder="https://rumi-word-quest.netlify.app"
+            class="flex-1 bg-indigo-950 border border-purple-400/60 rounded-xl px-3 py-2 text-xs text-white placeholder-purple-400 focus:outline-none focus:border-yellow-300 select-text"
+          />
+          <button onclick="saveCustomLiveUrl()" class="kpop-btn px-3 py-2 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-500 text-indigo-950 font-display font-extrabold text-xs shrink-0">
+            Save URL
+          </button>
+        </div>
+        <div class="flex items-center gap-2 pt-1">
+          <button onclick="copyAppLink()" class="kpop-btn flex-1 py-2 px-3 rounded-xl bg-indigo-800 hover:bg-indigo-700 border border-cyan-400/50 text-cyan-200 font-display font-bold text-xs flex items-center justify-center gap-1.5">
+            <i class="ph-bold ph-copy text-sm text-yellow-300"></i>
+            <span>Copy Live Link</span>
+          </button>
+          <button onclick="shareAppLink()" class="kpop-btn flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-display font-bold text-xs flex items-center justify-center gap-1.5 border border-pink-300">
+            <i class="ph-bold ph-share-network text-sm"></i>
+            <span>Share to Phone</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Scannable Mobile QR Code Card -->
+      <div class="bg-white text-indigo-950 rounded-2xl p-3.5 border-2 border-yellow-300 flex flex-col sm:flex-row items-center gap-3.5 shadow-inner">
+        <div id="qrCodeContainer" class="w-28 h-28 bg-white p-1.5 rounded-xl border border-slate-200 flex items-center justify-center shrink-0">
+          <!-- Dynamically rendered QR code -->
+        </div>
+        <div class="text-center sm:text-left space-y-1">
+          <div class="font-display font-extrabold text-sm text-indigo-950 flex items-center justify-center sm:justify-start gap-1">
+            <i class="ph-fill ph-camera text-pink-600 text-base"></i>
+            <span>Scan with Phone Camera</span>
+          </div>
+          <p class="text-[11px] text-slate-600 leading-snug">
+            Point any iPhone, iPad, or Android camera at this QR code to open Rumi's Word Quest and install it for <strong>100% Offline Play</strong>!
+          </p>
+          <div class="inline-flex items-center gap-1 text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
+            <span>✓ 200 Sentences Cached Offline</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Offline & Automatic Update Engine Status Card -->
+      <div class="bg-indigo-900/90 rounded-2xl p-3 border border-emerald-400/50 space-y-2">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-1.5">
+            <i class="ph-fill ph-cloud-check text-emerald-300 text-base"></i>
+            <span class="font-display font-bold text-xs text-emerald-200">Offline & Auto-Update Engine (v2.0.0)</span>
+          </div>
+          <span id="swStatusBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/30 text-emerald-200 border border-emerald-400/50">Active</span>
+        </div>
+        <p id="swStatusDetail" class="text-[11px] text-indigo-200 leading-relaxed">
+          All 200 sentences, Rumi/Mira/Zoey SVG art, sound synthesis, and app icons are stored locally for instant offline play. Background auto-update checks run automatically whenever online.
+        </p>
+        <div class="flex items-center gap-2 pt-1">
+          <button onclick="checkForAppUpdates(true)" class="kpop-btn flex-1 py-1.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-display font-bold text-xs flex items-center justify-center gap-1.5 border border-emerald-300">
+            <i id="updateSpinIcon" class="ph-bold ph-arrows-clockwise text-sm"></i>
+            <span id="checkUpdateBtnText">Check for Updates Now</span>
+          </button>
+          <button onclick="downloadPwaZip()" class="kpop-btn flex-1 py-1.5 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-indigo-950 font-display font-extrabold text-xs flex items-center justify-center gap-1.5 border border-white">
+            <i class="ph-bold ph-file-zip text-sm"></i>
+            <span>Download .ZIP</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 30-Second Free Hosting Guide -->
+      <div class="bg-indigo-950/90 rounded-2xl p-3 border border-purple-500/40 text-xs space-y-1.5">
+        <div class="font-display font-bold text-pink-300 flex items-center gap-1">
+          <i class="ph-fill ph-rocket-launch text-yellow-300"></i>
+          <span>Deploy Online with Automatic PWA Updates in 30s:</span>
+        </div>
+        <ol class="list-decimal list-inside text-[11px] text-indigo-200 space-y-1">
+          <li>Tap <strong>Download .ZIP</strong> to save <code class="text-yellow-300">rumi-kpop-demon-hunters-pwa.zip</code> (works offline too!).</li>
+          <li>Drag & drop the ZIP onto <strong>app.netlify.com/drop</strong>, <strong>Vercel</strong>, or <strong>Cloudflare Pages</strong>.</li>
+          <li>Whenever you upload a new ZIP, the included <code class="text-cyan-300">sw.js</code> Service Worker automatically updates every child's installed app!</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- 200 LEVELS & CATEGORY BROWSER MODAL -->
+  <div id="levelsModal" class="fixed inset-0 z-40 bg-slate-950/85 backdrop-blur-md hidden flex-col items-center justify-center p-3 sm:p-4">
+    <div class="w-full max-w-[460px] h-[88vh] bg-indigo-950 border-2 border-pink-400 rounded-3xl p-4 flex flex-col gap-3 shadow-2xl text-white">
+      <div class="flex items-center justify-between border-b border-indigo-800 pb-2.5 shrink-0">
+        <div>
+          <h2 class="font-display font-bold text-base sm:text-lg text-white flex items-center gap-2">
+            <i class="ph-fill ph-music-notes-plus text-yellow-300"></i>
+            <span>200 Word Quest Stages</span>
+          </h2>
+          <p class="text-[11px] text-pink-200">Completed: <span id="modalCompletedCount" class="font-bold text-yellow-300">0</span> / 200 stages</p>
+        </div>
+        <button onclick="closeLevelsModal()" class="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center">
+          <i class="ph-bold ph-x"></i>
+        </button>
+      </div>
+
+      <!-- Category Filter Pills -->
+      <div id="categoryFilterBar" class="flex items-center gap-1.5 overflow-x-auto pb-1 shrink-0 custom-scroll">
+        <!-- Dynamically populated category filter pills -->
+      </div>
+
+      <!-- 200 Sentences Scrollable Grid -->
+      <div id="levelsGridContainer" class="flex-1 overflow-y-auto custom-scroll grid grid-cols-4 sm:grid-cols-5 gap-2 pr-1 content-start">
+        <!-- Populated with 200 stage buttons -->
+      </div>
+
+      <div class="flex items-center justify-between pt-2 border-t border-indigo-800 shrink-0">
+        <button onclick="resetProgressPrompt()" class="text-xs text-rose-300 hover:text-rose-200 font-semibold flex items-center gap-1">
+          <i class="ph-bold ph-trash"></i> Reset Progress
+        </button>
+        <button onclick="closeLevelsModal()" class="kpop-btn px-4 py-1.5 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-white font-display font-bold text-xs">
+          Back to Stage
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APP ICON, PWA INSTALL & ZIP DOWNLOAD MODAL -->
+  <div id="infoModal" class="fixed inset-0 z-40 bg-slate-950/85 backdrop-blur-md hidden flex-col items-center justify-center p-3 sm:p-4">
+    <div class="w-full max-w-[440px] max-h-[90vh] overflow-y-auto custom-scroll bg-indigo-950 border-2 border-yellow-300 rounded-3xl p-4 sm:p-5 flex flex-col gap-3.5 shadow-2xl text-white">
+      <div class="flex items-center justify-between border-b border-indigo-800 pb-2.5">
+        <div class="flex items-center gap-2.5">
+          <img id="modalAppIconPreview" alt="Rumi App Icon" class="w-12 h-12 rounded-2xl border-2 border-yellow-300 shadow-md" />
+          <div>
+            <h2 class="font-display font-bold text-base sm:text-lg text-white">Rumi's Word Star PWA</h2>
+            <p class="text-[11px] text-cyan-200">v2.0.0 • 200 Sentences • Offline & Auto-Update</p>
+          </div>
+        </div>
+        <button onclick="closeInfoModal()" class="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center">
+          <i class="ph-bold ph-x"></i>
+        </button>
+      </div>
+
+      <!-- Install PWA Button (Shows if beforeinstallprompt fired or instructions) -->
+      <div class="bg-gradient-to-r from-fuchsia-900/80 to-indigo-900/80 rounded-2xl p-3.5 border border-pink-400/50 space-y-2">
+        <div class="font-display font-bold text-xs sm:text-sm text-yellow-300 flex items-center gap-1.5">
+          <i class="ph-fill ph-device-mobile-speaker text-base"></i>
+          <span>Install on Phone or Tablet (Plays Offline!)</span>
+        </div>
+        <p class="text-[11px] text-pink-100 leading-relaxed">
+          Add Rumi, Mira & Zoey to your Home Screen! Once opened, all <strong>200 emoji reading stages</strong> work without internet and automatically update whenever new stages drop.
+        </p>
+        <button id="installPwaBtn" onclick="triggerPwaInstall()" class="kpop-btn w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-display font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 border border-pink-200">
+          <i class="ph-bold ph-plus-circle text-base"></i>
+          <span>Install App to Home Screen</span>
+        </button>
+      </div>
+
+      <!-- Download Complete Offline-Ready PWA ZIP Bundle -->
+      <div class="bg-indigo-900/80 rounded-2xl p-3.5 border border-amber-400/50 space-y-2">
+        <div class="font-display font-bold text-xs sm:text-sm text-amber-300 flex items-center gap-1.5">
+          <i class="ph-fill ph-file-zip text-base"></i>
+          <span>Download Complete PWA (.ZIP) Bundle</span>
+        </div>
+        <p class="text-[11px] text-indigo-100 leading-relaxed">
+          Includes <code class="text-yellow-300">index.html</code> (all 200 sentences), <code class="text-yellow-300">sw.js</code> (Offline + Auto-Update Service Worker), <code class="text-yellow-300">manifest.json</code>, <code class="text-yellow-300">icons/icon-192.png</code>, <code class="text-yellow-300">icons/icon-512.png</code>, and hosting configs.
+        </p>
+        <button onclick="downloadPwaZip()" class="kpop-btn w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 text-indigo-950 font-display font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 border-2 border-white">
+          <i class="ph-bold ph-download-simple text-base"></i>
+          <span>Download Ready-to-Host PWA .ZIP</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUTO-UPDATE AVAILABLE FLOATING BANNER -->
+  <div id="updateBanner" class="fixed bottom-16 left-1/2 -translate-x-1/2 z-50 hidden items-center gap-3 bg-gradient-to-r from-indigo-900 via-purple-900 to-fuchsia-900 border-2 border-yellow-300 text-white px-4 py-2.5 rounded-2xl shadow-2xl max-w-[92vw]">
+    <span class="text-xl">✨</span>
+    <div class="text-xs">
+      <div class="font-display font-bold text-yellow-300">New Stage Update Ready!</div>
+      <div class="text-[10px] text-pink-100">Tap to refresh with the latest version.</div>
+    </div>
+    <button onclick="applyPendingUpdate()" class="kpop-btn px-3 py-1.5 rounded-xl bg-emerald-400 text-indigo-950 font-display font-extrabold text-xs shrink-0">
+      Update Now
+    </button>
+  </div>
+
+  <script>
+    /*************************************************************************
+     * 1. 200 KID-FRIENDLY EMOJI FILL-IN-THE-BLANK SENTENCES
+     *    (100 Original + 100 Brand New Across 10 K-Pop & Kid Categories)
+     *************************************************************************/
+    const SENTENCE_BANK = [
+      // --- 1 to 20: Stage & Music (Rumi, Mira & Zoey) ---
+      { id: 1, category: "Stage & Music", emojis: "🎤 🌟 🎶", sentence: "Rumi holds the ___ and sings a bright song.", answer: "microphone", options: ["microphone", "banana", "pillow", "tractor"] },
+      { id: 2, category: "Stage & Music", emojis: "🎧 💃 ✨", sentence: "Mira wears cool ___ while she dances on stage.", answer: "headphones", options: ["headphones", "pancakes", "mittens", "shovels"] },
+      { id: 3, category: "Stage & Music", emojis: "🥁 🌟 🎵", sentence: "Zoey taps her golden ___ to keep the beat.", answer: "tambourine", options: ["tambourine", "broccoli", "umbrella", "toothbrush"] },
+      { id: 4, category: "Stage & Music", emojis: "🎸 ⚡ 🎶", sentence: "The purple ___ makes an awesome rock sound.", answer: "guitar", options: ["guitar", "carrot", "teapot", "kettle"] },
+      { id: 5, category: "Stage & Music", emojis: "🎹 🎵 🎶", sentence: "She plays a happy melody on the ___.", answer: "piano", options: ["piano", "helmet", "ladder", "lettuce"] },
+      { id: 6, category: "Stage & Music", emojis: "💃 🪩 🌟", sentence: "The three friends love to ___ under the disco ball.", answer: "dance", options: ["dance", "sleep", "freeze", "dig"] },
+      { id: 7, category: "Stage & Music", emojis: "🎟️ 🏟️ 🎉", sentence: "We bought a ___ to watch the big concert.", answer: "ticket", options: ["ticket", "bucket", "blanket", "pocket"] },
+      { id: 8, category: "Stage & Music", emojis: "👏 😊 🎶", sentence: "The happy fans ___ their hands after the song.", answer: "clap", options: ["clap", "wash", "hide", "bake"] },
+      { id: 9, category: "Stage & Music", emojis: "👗 ✨ 💜", sentence: "Rumi wears a sparkly purple ___ for the show.", answer: "dress", options: ["dress", "truck", "spoon", "cloud"] },
+      { id: 10, category: "Stage & Music", emojis: "👟 💨 🎵", sentence: "Mira ties her shiny ___ before jumping high.", answer: "sneakers", options: ["sneakers", "cookies", "crayons", "curtains"] },
+      { id: 11, category: "Stage & Music", emojis: "🎺 🎶 🌟", sentence: "The golden ___ blows a loud and cheerful note.", answer: "trumpet", options: ["trumpet", "muffin", "carpet", "basket"] },
+      { id: 12, category: "Stage & Music", emojis: "🎻 🎶 💖", sentence: "Zoey plays a gentle tune on the ___.", answer: "violin", options: ["violin", "pumpkin", "penguin", "dolphin"] },
+      { id: 13, category: "Stage & Music", emojis: "🥁 🥢 💥", sentence: "He hits the big ___ with two wooden sticks.", answer: "drum", options: ["drum", "plum", "frog", " sled"] },
+      { id: 14, category: "Stage & Music", emojis: "💡 🌈 🎭", sentence: "Bright rainbow ___ shine down on the stage.", answer: "lights", options: ["lights", "boots", "boats", "goats"] },
+      { id: 15, category: "Stage & Music", emojis: "🏆 🌟 🎉", sentence: "The K-Pop team won a shiny gold ___!", answer: "trophy", options: ["trophy", "turtle", "tomato", "toaster"] },
+      { id: 16, category: "Stage & Music", emojis: "🎶 📻 🚗", sentence: "We listen to fun ___ on the radio.", answer: "music", options: ["music", "mud", "milk", "moss"] },
+      { id: 17, category: "Stage & Music", emojis: "🎀 👧 ✨", sentence: "Zoey puts a pink ___ in her bouncy hair.", answer: "ribbon", options: ["ribbon", "rabbit", "robot", "radish"] },
+      { id: 18, category: "Stage & Music", emojis: "🌟 🎤 💖", sentence: "Every singer practices their ___ before the show.", answer: "voice", options: ["voice", "juice", "fence", "mouse"] },
+      { id: 19, category: "Stage & Music", emojis: "🎭 🔴 ✨", sentence: "The red velvet ___ opens when the concert starts.", answer: "curtain", options: ["curtain", "captain", "cushion", "cabin"] },
+      { id: 20, category: "Stage & Music", emojis: "🪄 🌟 🎶", sentence: "Rumi waves her glow ___ to cheer the crowd.", answer: "stick", options: ["stick", "brick", "truck", "clock"] },
+
+      // --- 21 to 40: Magical Pets & Animals ---
+      { id: 21, category: "Magical Pets", emojis: "🐶 🦴 💛", sentence: "The happy ___ wags its tail for a bone.", answer: "puppy", options: ["puppy", "apple", "table", "pencil"] },
+      { id: 22, category: "Magical Pets", emojis: "🐱 🧶 💜", sentence: "A fluffy ___ plays with a ball of purple yarn.", answer: "kitten", options: ["kitten", "mitten", "button", "lemon"] },
+      { id: 23, category: "Magical Pets", emojis: "🐰 🥕 🌸", sentence: "The white ___ hops across the garden for a carrot.", answer: "bunny", options: ["bunny", "sunny", "spoon", "train"] },
+      { id: 24, category: "Magical Pets", emojis: "🦄 🌈 ✨", sentence: "A magical ___ flies across the bright rainbow.", answer: "unicorn", options: ["unicorn", "popcorn", "acorn", "tractor"] },
+      { id: 25, category: "Magical Pets", emojis: "🐼 🎋 🌿", sentence: "The cute ___ munches on crunchy green bamboo.", answer: "panda", options: ["panda", "pizza", "pillow", "planet"] },
+      { id: 26, category: "Magical Pets", emojis: "🐸 🪷 💧", sentence: "A little green ___ jumps onto the lily pad.", answer: "frog", options: ["frog", "flag", "fork", "fish"] },
+      { id: 27, category: "Magical Pets", emojis: "🦋 🌸 ☀️", sentence: "The colorful ___ lands softly on a pink flower.", answer: "butterfly", options: ["butterfly", "dragonfly", "blueberry", "umbrella"] },
+      { id: 28, category: "Magical Pets", emojis: "🐢 🏖️ 🌿", sentence: "The slow ___ carries a hard shell on its back.", answer: "turtle", options: ["turtle", "turkey", "tunnel", "teapot"] },
+      { id: 29, category: "Magical Pets", emojis: "🦜 🌴 🎶", sentence: "A bright red ___ can repeat the words you say.", answer: "parrot", options: ["parrot", "carrot", "pirate", "pocket"] },
+      { id: 30, category: "Magical Pets", emojis: "🐝 🌻 🍯", sentence: "The busy ___ makes sweet golden honey.", answer: "bee", options: ["bee", "bus", "bed", "bat"] },
+      { id: 31, category: "Magical Pets", emojis: "🐬 🌊 ☀️", sentence: "A friendly ___ leaps high out of the blue waves.", answer: "dolphin", options: ["dolphin", "muffin", "pumpkin", "napkin"] },
+      { id: 32, category: "Magical Pets", emojis: "🦁 👑 🌾", sentence: "The brave ___ has a big golden mane.", answer: "lion", options: ["lion", "lemon", "lamp", "leaf"] },
+      { id: 33, category: "Magical Pets", emojis: "🐘 🥜 💦", sentence: "The big gray ___ sprays water with its trunk.", answer: "elephant", options: ["elephant", "eggplant", "envelope", "elevator"] },
+      { id: 34, category: "Magical Pets", emojis: "🐧 ❄️ 🧊", sentence: "A cute ___ waddles across the snowy ice.", answer: "penguin", options: ["penguin", "pencil", "peanut", "pillow"] },
+      { id: 35, category: "Magical Pets", emojis: "🦉 🌙 🌳", sentence: "The wise ___ hoots from a tree branch at night.", answer: "owl", options: ["owl", "ant", "ape", "ox"] },
+      { id: 36, category: "Magical Pets", emojis: "🦊 🍂 🌲", sentence: "A clever orange ___ has a bushy tail.", answer: "fox", options: ["fox", "box", "fan", "fig"] },
+      { id: 37, category: "Magical Pets", emojis: "🦒 🍃 🌳", sentence: "The tall ___ eats leaves from the highest tree.", answer: "giraffe", options: ["giraffe", "guitar", "garden", "glasses"] },
+      { id: 38, category: "Magical Pets", emojis: "🐨 🌿 😴", sentence: "A sleepy ___ hugs the tree branch all afternoon.", answer: "koala", options: ["koala", "kettle", "kitten", "kite"] },
+      { id: 39, category: "Magical Pets", emojis: "🦆 池 🌾", sentence: "The yellow ___ swims happily in the pond.", answer: "duck", options: ["duck", "desk", "drum", "door"] },
+      { id: 40, category: "Magical Pets", emojis: "🐎 🌾 💨", sentence: "The fast ___ gallops across the green field.", answer: "horse", options: ["horse", "house", "hose", "horn"] },
+
+      // --- 41 to 60: Tasty Treats & Kitchen ---
+      { id: 41, category: "Tasty Treats", emojis: "🍓 🎂 ✨", sentence: "We put red ___ on top of the birthday cake.", answer: "strawberries", options: ["strawberries", "sunglasses", "sandwiches", "snowflakes"] },
+      { id: 42, category: "Tasty Treats", emojis: "🍦 🍒 ☀️", sentence: "Zoey loves cold ___ on a warm summer day.", answer: "ice cream", options: ["ice cream", "ironing", "icicles", "inkwell"] },
+      { id: 43, category: "Tasty Treats", emojis: "🥞 🍯 🧈", sentence: "Dad pours sweet syrup on the warm ___.", answer: "pancakes", options: ["pancakes", "paintings", "pajamas", "pebbles"] },
+      { id: 44, category: "Tasty Treats", emojis: "🍕 🧀 🍅", sentence: "We shared a cheesy slice of ___ after practice.", answer: "pizza", options: ["pizza", "panda", "piano", "pillow"] },
+      { id: 45, category: "Tasty Treats", emojis: "🍎 🎒 📚", sentence: "Mira packs a crunchy red ___ in her lunchbox.", answer: "apple", options: ["apple", "acorn", "apron", "arrow"] },
+      { id: 46, category: "Tasty Treats", emojis: "🍌 🐒 💛", sentence: "Peel the yellow ___ before you take a bite.", answer: "banana", options: ["banana", "balloon", "blanket", "basket"] },
+      { id: 47, category: "Tasty Treats", emojis: "🍪 🥛 😋", sentence: "Rumi dips her chocolate chip ___ into cold milk.", answer: "cookie", options: ["cookie", "candle", "castle", "carrot"] },
+      { id: 48, category: "Tasty Treats", emojis: "🍉 ☀️ 🏖️", sentence: "Juicy pink ___ is delicious at the picnic.", answer: "watermelon", options: ["watermelon", "waterfall", "wheelbarrow", "windshield"] },
+      { id: 49, category: "Tasty Treats", emojis: "🍿 🎬 🎟️", sentence: "We munch on buttery ___ while watching the movie.", answer: "popcorn", options: ["popcorn", "penguin", "pumpkin", "acorn"] },
+      { id: 50, category: "Tasty Treats", emojis: "🍩 🌈 ✨", sentence: "The glazed ___ has rainbow sprinkles on top.", answer: "donut", options: ["donut", "daisy", "drum", "duck"] },
+      { id: 51, category: "Tasty Treats", emojis: "🥪 🧀 🥬", sentence: "She made a healthy ___ with cheese and lettuce.", answer: "sandwich", options: ["sandwich", "starfish", "suitcase", "scooter"] },
+      { id: 52, category: "Tasty Treats", emojis: "🥕 🐰 🥗", sentence: "An orange ___ gives our salad a nice crunch.", answer: "carrot", options: ["carrot", "carpet", "parrot", "candle"] },
+      { id: 53, category: "Tasty Treats", emojis: "🍇 💜 🥣", sentence: "A bowl of purple ___ makes a great snack.", answer: "grapes", options: ["grapes", "gloves", "glasses", "grass"] },
+      { id: 54, category: "Tasty Treats", emojis: "🧁 💖 🎉", sentence: "Zoey decorated the ___ with pink frosting.", answer: "cupcake", options: ["cupcake", "campfire", "calendar", "cushion"] },
+      { id: 55, category: "Tasty Treats", emojis: "🍋 🥤 ☀️", sentence: "Cold yellow ___ is refreshing when it is hot.", answer: "lemonade", options: ["lemonade", "ladybug", "lollipop", "lightbulb"] },
+      { id: 56, category: "Tasty Treats", emojis: "🥨 🧂 😋", sentence: "The warm baked ___ is twisted into a knot.", answer: "pretzel", options: ["pretzel", "pencil", "puzzle", "puddle"] },
+      { id: 57, category: "Tasty Treats", emojis: "🥣 🥄 🍓", sentence: "He eats warm oatmeal from a blue ___.", answer: "bowl", options: ["bowl", "boat", "ball", "bell"] },
+      { id: 58, category: "Tasty Treats", emojis: "🧇 🍓 🍯", sentence: "The crispy ___ has little squares for holding syrup.", answer: "waffle", options: ["waffle", "walrus", "window", "whistle"] },
+      { id: 59, category: "Tasty Treats", emojis: "🧀 🐭 💛", sentence: "The little mouse found a wedge of yellow ___.", answer: "cheese", options: ["cheese", "chairs", "cherries", "chains"] },
+      { id: 60, category: "Tasty Treats", emojis: "🍜 🥢 🥟", sentence: "We slurp warm ___ from the soup bowl.", answer: "noodles", options: ["noodles", "needles", "nickels", "napkins"] },
+
+      // --- 61 to 80: Weather & Nature ---
+      { id: 61, category: "Weather & Nature", emojis: "🌈 🌦️ ☀️", sentence: "After the rain stops, a seven-color ___ appears.", answer: "rainbow", options: ["rainbow", "raincoat", "railway", "reindeer"] },
+      { id: 62, category: "Weather & Nature", emojis: "☔ 🌧️ 👢", sentence: "Hold your ___ up high so you stay dry.", answer: "umbrella", options: ["umbrella", "unicorn", "uniform", "ukulele"] },
+      { id: 63, category: "Weather & Nature", emojis: "⛄ ❄️ 🧣", sentence: "We rolled three big snowballs to build a ___.", answer: "snowman", options: ["snowman", "starfish", "sunflower", "spaceship"] },
+      { id: 64, category: "Weather & Nature", emojis: "🌻 ☀️ 🐝", sentence: "The tall yellow ___ turns toward the bright sun.", answer: "sunflower", options: ["sunflower", "strawberry", "skateboard", "snowflake"] },
+      { id: 65, category: "Weather & Nature", emojis: "🍂 🍁 🌬️", sentence: "Colorful autumn ___ fall gently from the trees.", answer: "leaves", options: ["leaves", "loaves", "ladders", "lemons"] },
+      { id: 66, category: "Weather & Nature", emojis: "☁️ 🌤️ 🐦", sentence: "Fluffy white ___ float slowly across the blue sky.", answer: "clouds", options: ["clouds", "clowns", "clocks", "crowns"] },
+      { id: 67, category: "Weather & Nature", emojis: "⚡ ⛈️ 🌧️", sentence: "A bright flash of ___ lit up the stormy sky.", answer: "lightning", options: ["lightning", "lantern", "lollipop", "ladybug"] },
+      { id: 68, category: "Weather & Nature", emojis: "❄️ 🧤 🧣", sentence: "Every tiny white ___ has six special points.", answer: "snowflake", options: ["snowflake", "suitcase", "sandwich", "sailboat"] },
+      { id: 69, category: "Weather & Nature", emojis: "🌋 🔥 🪨", sentence: "Hot red lava flows down the tall ___.", answer: "volcano", options: ["volcano", "violin", "village", "lettuce"] },
+      { id: 70, category: "Weather & Nature", emojis: "🌊 🐚 🏖️", sentence: "Gentle ocean ___ wash onto the sandy beach.", answer: "waves", options: ["waves", "wings", "wheels", "walls"] },
+      { id: 71, category: "Weather & Nature", emojis: "🌲 ⛺ 🦌", sentence: "Tall green pine ___ grow in the quiet forest.", answer: "trees", options: ["trees", "trains", "trucks", "trays"] },
+      { id: 72, category: "Weather & Nature", emojis: "⛰️ 🥾 🦅", sentence: "We hiked all the way to the top of the ___.", answer: "mountain", options: ["mountain", "fountain", "curtain", "muffin"] },
+      { id: 73, category: "Weather & Nature", emojis: "🌸 🌱 🌷", sentence: "Pink cherry ___ bloom on the branches in spring.", answer: "blossoms", options: ["blossoms", "buttons", "balloons", "baskets"] },
+      { id: 74, category: "Weather & Nature", emojis: "🌬️ 🪁 🌳", sentence: "A strong breeze of ___ helps our kite fly high.", answer: "wind", options: ["wind", "wood", "wool", "wand"] },
+      { id: 75, category: "Weather & Nature", emojis: "🌧️ 👢 💦", sentence: "Zoey wears yellow boots to splash in the ___.", answer: "puddle", options: ["puddle", "puzzle", "paddle", "pillow"] },
+      { id: 76, category: "Weather & Nature", emojis: "🌵 ☀️ 🏜️", sentence: "A green prickly ___ grows in the dry desert.", answer: "cactus", options: ["cactus", "circus", "compass", "carpet"] },
+      { id: 77, category: "Weather & Nature", emojis: "🌕 🌌 ✨", sentence: "The round silver ___ glows brightly at night.", answer: "moon", options: ["moon", "milk", "mask", "mint"] },
+      { id: 78, category: "Weather & Nature", emojis: "☀️ 🕶️ 🏖️", sentence: "The golden ___ warms the sand in the afternoon.", answer: "sun", options: ["sun", "saw", "sea", "sky"] },
+      { id: 79, category: "Weather & Nature", emojis: "🪨 🏞️ 💦", sentence: "Clear water rushes over the smooth river ___.", answer: "rocks", options: ["rocks", "socks", "locks", "clocks"] },
+      { id: 80, category: "Weather & Nature", emojis: "🌹 🌷 🐝", sentence: "Rumi waters the red ___ in her flower garden.", answer: "roses", options: ["roses", "ropes", "robots", "rockets"] },
+
+      // --- 81 to 100: Adventures & Play ---
+      { id: 81, category: "Adventures & Play", emojis: "🚲 🪖 🏞️", sentence: "Always wear a safety helmet when riding your ___.", answer: "bicycle", options: ["bicycle", "binoculars", "balloon", "blanket"] },
+      { id: 82, category: "Adventures & Play", emojis: "🪁 🌬️ 🌤️", sentence: "Our diamond ___ dances high up in the sky.", answer: "kite", options: ["kite", "key", "king", "kitten"] },
+      { id: 83, category: "Adventures & Play", emojis: "🛹 🏞️ 😎", sentence: "Mira rolls smoothly on her four-wheeled ___.", answer: "skateboard", options: ["skateboard", "scoreboard", "snowboard", "cupboard"] },
+      { id: 84, category: "Adventures & Play", emojis: "⛺ 🔥 🌲", sentence: "We sleep inside a cozy ___ when we go camping.", answer: "tent", options: ["tent", "train", "toast", "tower"] },
+      { id: 85, category: "Adventures & Play", emojis: "🎈 🎉 🎁", sentence: "The red helium ___ floats up toward the ceiling.", answer: "balloon", options: ["balloon", "baboon", "bassoon", "button"] },
+      { id: 86, category: "Adventures & Play", emojis: "🧩 🖼️ 🧠", sentence: "We fit the last piece into the jigsaw ___.", answer: "puzzle", options: ["puzzle", "puddle", "pretzel", "pencil"] },
+      { id: 87, category: "Adventures & Play", emojis: "🚂 🛤️ 💨", sentence: "The shiny ___ chugs along the steel tracks.", answer: "train", options: ["train", "truck", "tree", "tray"] },
+      { id: 88, category: "Adventures & Play", emojis: "⛵ 🌊 🌬️", sentence: "The white ___ glides across the blue lake.", answer: "sailboat", options: ["sailboat", "suitcase", "sandwich", "snowball"] },
+      { id: 89, category: "Adventures & Play", emojis: "🏰 👑 🐉", sentence: "The brave knight guards the tall stone ___.", answer: "castle", options: ["castle", "candle", "cattle", "kettle"] },
+      { id: 90, category: "Adventures & Play", emojis: "🎢 🎡 🎟️", sentence: "The fast ___ zooms up and down the steep hills!", answer: "roller coaster", options: ["roller coaster", "lawn mower", "washing machine", "fire engine"] },
+      { id: 91, category: "Adventures & Play", emojis: "⚽ 🥅 🏃", sentence: "Zoey kicks the black and white ___ into the goal.", answer: "soccer ball", options: ["soccer ball", "snowball", "basket", "feather"] },
+      { id: 92, category: "Adventures & Play", emojis: "🏀 🧡 🏆", sentence: "He bounces the orange ___ on the court.", answer: "basketball", options: ["basketball", "butterfly", "blueberry", "backpack"] },
+      { id: 93, category: "Adventures & Play", emojis: "🛷 ❄️ ⛰️", sentence: "We ride our wooden ___ down the snowy hill.", answer: "sled", options: ["sled", "shed", "bed", "seed"] },
+      { id: 94, category: "Adventures & Play", emojis: "🧭 🗺️ 🥾", sentence: "The explorer checks her ___ to find north.", answer: "compass", options: ["compass", "cactus", "canvas", "circus"] },
+      { id: 95, category: "Adventures & Play", emojis: "🔦 🌙 ⛺", sentence: "Shine your bright ___ so we can see the path.", answer: "flashlight", options: ["flashlight", "traffic light", "firefly", "feather"] },
+      { id: 96, category: "Adventures & Play", emojis: "🧸 💖 🛏️", sentence: "The soft brown ___ sits on top of the bed.", answer: "teddy bear", options: ["teddy bear", "polar bear", "dining chair", "pair of shoes"] },
+      { id: 97, category: "Adventures & Play", emojis: "🫧 🪄 😊", sentence: "She blows shiny soap ___ that pop in the air.", answer: "bubbles", options: ["bubbles", "buckles", "pebbles", "bottles"] },
+      { id: 98, category: "Adventures & Play", emojis: "🛝 🏞️ 😄", sentence: "The children laugh as they zoom down the ___.", answer: "slide", options: ["slide", "swing", "stairs", "stool"] },
+      { id: 99, category: "Adventures & Play", emojis: "🎠 🐎 🎶", sentence: "Painted horses go round and round on the ___.", answer: "carousel", options: ["carousel", "calendar", "caterpillar", "cauliflower"] },
+      { id: 100, category: "Adventures & Play", emojis: "🗺️ 🏝️ 💎", sentence: "The pirate followed the ___ to find hidden treasure!", answer: "map", options: ["map", "mop", "mug", "mat"] },
+
+      // =====================================================================
+      // NEW SENTENCES 101 TO 200 (100 Brand New Sentences!)
+      // =====================================================================
+
+      // --- 101 to 120: Demon Hunter Magic (Rumi, Mira & Zoey Quests) ---
+      { id: 101, category: "Demon Hunter Magic", emojis: "🪄 💜 ✨", sentence: "Rumi lifts her glowing ___ to banish the dark shadow.", answer: "wand", options: ["wand", "worm", "wall", "wheel"] },
+      { id: 102, category: "Demon Hunter Magic", emojis: "🛡️ 🌟 💖", sentence: "Zoey creates a golden ___ to protect her friends.", answer: "shield", options: ["shield", "shovel", "shirt", "shelf"] },
+      { id: 103, category: "Demon Hunter Magic", emojis: "💎 🔮 ⚡", sentence: "The magic blue ___ sparkles with starlight power.", answer: "crystal", options: ["crystal", "crayon", "cracker", "curtain"] },
+      { id: 104, category: "Demon Hunter Magic", emojis: "👾 ➡️ 😊", sentence: "Our happy song turns the grumpy ___ into a friend!", answer: "spirit", options: ["spirit", "spinach", "sponge", "spider"] },
+      { id: 105, category: "Demon Hunter Magic", emojis: "🌟 🎵 💥", sentence: "Mira sings a high ___ that breaks the gloomy spell.", answer: "note", options: ["note", "nest", "nose", "nut"] },
+      { id: 106, category: "Demon Hunter Magic", emojis: "👑 ✨ 💜", sentence: "Rumi wears a shining starlight ___ on her head.", answer: "crown", options: ["crown", "clown", "cloud", "couch"] },
+      { id: 107, category: "Demon Hunter Magic", emojis: "🧥 🌌 ✨", sentence: "The hunter's velvet ___ shimmers like the night sky.", answer: "cape", options: ["cape", "cake", "cage", "cave"] },
+      { id: 108, category: "Demon Hunter Magic", emojis: "🔑 🚪 🌟", sentence: "Zoey found the golden ___ to open the secret gate.", answer: "key", options: ["key", "kite", "knee", "kettle"] },
+      { id: 109, category: "Demon Hunter Magic", emojis: "📜 🖋️ ✨", sentence: "An ancient magic song is written on the ___.", answer: "scroll", options: ["scroll", "scooter", "scarf", "spoon"] },
+      { id: 110, category: "Demon Hunter Magic", emojis: "🧪 💖 ✨", sentence: "The pink sparkle ___ gives the team super speed.", answer: "potion", options: ["potion", "pillow", "pumpkin", "peanut"] },
+      { id: 111, category: "Demon Hunter Magic", emojis: "🏮 🌙 🔥", sentence: "A floating paper ___ lights up the mystic bridge.", answer: "lantern", options: ["lantern", "ladder", "lemon", "lettuce"] },
+      { id: 112, category: "Demon Hunter Magic", emojis: "🐉 🌈 ☁️", sentence: "A friendly sky ___ gives Rumi and Mira a ride.", answer: "dragon", options: ["dragon", "wagon", "dolphin", "donkey"] },
+      { id: 113, category: "Demon Hunter Magic", emojis: "🔔 ✨ 🎵", sentence: "When the silver ___ rings, all shadows disappear.", answer: "bell", options: ["bell", "ball", "belt", "boat"] },
+      { id: 114, category: "Demon Hunter Magic", emojis: "🪞 🌟 👀", sentence: "The enchanted ___ shows where the gloomy notes hide.", answer: "mirror", options: ["mirror", "mitten", "muffin", "marker"] },
+      { id: 115, category: "Demon Hunter Magic", emojis: "👢 ⚡ 💃", sentence: "Mira wears neon ___ that let her jump over rooftops.", answer: "boots", options: ["boots", "books", "boats", "bowls"] },
+      { id: 116, category: "Demon Hunter Magic", emojis: "💍 💎 💜", sentence: "A purple gem glows inside Rumi's magic ___.", answer: "ring", options: ["ring", "rope", "rock", "rug"] },
+      { id: 117, category: "Demon Hunter Magic", emojis: "🌀 🌌 🌟", sentence: "The trio steps through a swirling starlight ___.", answer: "portal", options: ["portal", "pillow", "pencil", "puddle"] },
+      { id: 118, category: "Demon Hunter Magic", emojis: "🪶 ✨ 🕊️", sentence: "A glowing golden ___ floats gently from the sky.", answer: "feather", options: ["feather", "freezer", "flower", "finger"] },
+      { id: 119, category: "Demon Hunter Magic", emojis: "⏳ 🌟 🕰️", sentence: "Sand sparkles as it falls through the magic ___.", answer: "hourglass", options: ["hourglass", "eyeglasses", "tall grass", "magnifying glass"] },
+      { id: 120, category: "Demon Hunter Magic", emojis: "🤝 💖 🌟", sentence: "The demon hunters win because of their strong ___!", answer: "teamwork", options: ["teamwork", "toothpick", "tablecloth", "textbook"] },
+
+      // --- 121 to 140: Space & Stars ---
+      { id: 121, category: "Space & Stars", emojis: "🚀 🔥 🌌", sentence: "The silver ___ blasts off into outer space!", answer: "rocket", options: ["rocket", "rabbit", "racket", "ribbon"] },
+      { id: 122, category: "Space & Stars", emojis: "👩‍🚀 🌕 ✨", sentence: "The brave ___ bounces across the dusty moon.", answer: "astronaut", options: ["astronaut", "alligator", "ambulance", "aquarium"] },
+      { id: 123, category: "Space & Stars", emojis: "🪐 💫 🌌", sentence: "Saturn is a giant ___ with bright icy rings.", answer: "planet", options: ["planet", "blanket", "pocket", "parrot"] },
+      { id: 124, category: "Space & Stars", emojis: "🔭 🌙 ⭐", sentence: "Mira looks through her ___ to spot distant stars.", answer: "telescope", options: ["telescope", "telephone", "television", "trampoline"] },
+      { id: 125, category: "Space & Stars", emojis: "☄️ 🌌 ✨", sentence: "A bright icy ___ streaks across the dark sky.", answer: "comet", options: ["comet", "carpet", "closet", "carrot"] },
+      { id: 126, category: "Space & Stars", emojis: "🌍 💙 🌿", sentence: "We all live together on planet ___.", answer: "Earth", options: ["Earth", "Mars", "Venus", "Pluto"] },
+      { id: 127, category: "Space & Stars", emojis: "🛸 👽 💚", sentence: "The little green alien waves from a flying ___.", answer: "saucer", options: ["saucer", "scooter", "sweater", "scissor"] },
+      { id: 128, category: "Space & Stars", emojis: "🌌 🌀 ⭐", sentence: "Billions of shining stars swirl in the Milky Way ___.", answer: "galaxy", options: ["galaxy", "garden", "garage", "guitar"] },
+      { id: 129, category: "Space & Stars", emojis: "🛰️ 🌍 📡", sentence: "A shiny space ___ orbits high above the clouds.", answer: "satellite", options: ["satellite", "sandcastle", "strawberry", "skateboard"] },
+      { id: 130, category: "Space & Stars", emojis: "🌠 🙏 🌙", sentence: "Zoey makes a wish when she sees a shooting ___.", answer: "star", options: ["star", "stair", "scar", "spoon"] },
+      { id: 131, category: "Space & Stars", emojis: "🪨 🌌 💥", sentence: "A rocky ___ floats between Mars and Jupiter.", answer: "asteroid", options: ["asteroid", "avocado", "acorn", "airplane"] },
+      { id: 132, category: "Space & Stars", emojis: "🪖 👩‍🚀 🛡️", sentence: "The space ___ has a clear visor to see the stars.", answer: "helmet", options: ["helmet", "hammock", "hammer", "hamster"] },
+      { id: 133, category: "Space & Stars", emojis: "☀️ 🔥 🪐", sentence: "All eight planets travel in circles around the ___.", answer: "sun", options: ["sun", "sand", "snow", "soup"] },
+      { id: 134, category: "Space & Stars", emojis: "🔴 🪐 🤖", sentence: "A little robot rover drives across the red planet ___.", answer: "Mars", options: ["Mars", "Moon", "Mist", "Mint"] },
+      { id: 135, category: "Space & Stars", emojis: "🌙 🥐 ✨", sentence: "Tonight the thin moon is shaped like a ___.", answer: "crescent", options: ["crescent", "present", "coconut", "cabinet"] },
+      { id: 136, category: "Space & Stars", emojis: "🌌 🐻 ⭐", sentence: "The stars connect like dots to form a ___.", answer: "constellation", options: ["constellation", "caterpillar", "cauliflower", "conversation"] },
+      { id: 137, category: "Space & Stars", emojis: "🪶 👩‍🚀 🛸", sentence: "Without ___ in space, astronauts float like feathers!", answer: "gravity", options: ["gravity", "gravy", "grocery", "grass"] },
+      { id: 138, category: "Space & Stars", emojis: "🌑 ☀️ 🕶️", sentence: "When the moon blocks the sun, it is called an ___.", answer: "eclipse", options: ["eclipse", "elephant", "envelope", "eggplant"] },
+      { id: 139, category: "Space & Stars", emojis: "🏠 🛰️ 👩‍🚀", sentence: "Scientists live and work inside the space ___.", answer: "station", options: ["station", "statue", "stadium", "stomach"] },
+      { id: 140, category: "Space & Stars", emojis: "⏱️ 🚀 🔥", sentence: "Ten, nine, eight! We shout the ___ before liftoff!", answer: "countdown", options: ["countdown", "campfire", "cupcake", "calendar"] },
+
+      // --- 141 to 160: Ocean & Beach ---
+      { id: 141, category: "Ocean & Beach", emojis: "🐙 🌊 💜", sentence: "The clever purple ___ has eight wiggly arms.", answer: "octopus", options: ["octopus", "ostrich", "oatmeal", "overall"] },
+      { id: 142, category: "Ocean & Beach", emojis: "🦀 🏖️ 🔴", sentence: "A little red ___ walks sideways across the sand.", answer: "crab", options: ["crab", "crib", "crow", "corn"] },
+      { id: 143, category: "Ocean & Beach", emojis: "🐋 🌊 💦", sentence: "The giant blue ___ sings deep under the sea.", answer: "whale", options: ["whale", "wheel", "wheat", "whistle"] },
+      { id: 144, category: "Ocean & Beach", emojis: "🐚 🏖️ 👂", sentence: "Hold the pink ___ to your ear to hear the ocean.", answer: "seashell", options: ["seashell", "squirrel", "scissors", "sandwich"] },
+      { id: 145, category: "Ocean & Beach", emojis: "⭐ 🌊 🪸", sentence: "A five-pointed orange ___ rests on the ocean floor.", answer: "starfish", options: ["starfish", "snowball", "suitcase", "sunflower"] },
+      { id: 146, category: "Ocean & Beach", emojis: "🪼 🌊 ✨", sentence: "The glowing pink ___ drifts gently in the water.", answer: "jellyfish", options: ["jellyfish", "jackfruit", "jumpsuit", "jigsaw"] },
+      { id: 147, category: "Ocean & Beach", emojis: "🏰 🏖️ 🪣", sentence: "We used a bucket and spade to build a ___.", answer: "sandcastle", options: ["sandcastle", "screwdriver", "strawberry", "skateboard"] },
+      { id: 148, category: "Ocean & Beach", emojis: "🗼 💡 🌊", sentence: "The tall ___ shines a beacon to guide ships safely.", answer: "lighthouse", options: ["lighthouse", "doghouse", "greenhouse", "treehouse"] },
+      { id: 149, category: "Ocean & Beach", emojis: "🤿 🐠 🪸", sentence: "Rumi wears goggles and a ___ to look at colorful fish.", answer: "snorkel", options: ["snorkel", "scooter", "spatula", "sweater"] },
+      { id: 150, category: "Ocean & Beach", emojis: "🏄‍♀️ 🌊 ☀️", sentence: "Mira balances on her ___ as she rides the wave.", answer: "surfboard", options: ["surfboard", "clipboard", "cardboard", "cupboard"] },
+      { id: 151, category: "Ocean & Beach", emojis: "🪸 🐠 🌈", sentence: "Many tiny fish hide inside the colorful coral ___.", answer: "reef", options: ["reef", "roof", "root", "rope"] },
+      { id: 152, category: "Ocean & Beach", emojis: "🐎 🌊 🌿", sentence: "A tiny curly-tailed ___ holds onto the seagrass.", answer: "seahorse", options: ["seahorse", "sawhorse", "suitcase", "starlight"] },
+      { id: 153, category: "Ocean & Beach", emojis: "🐦 🏖️ 🍟", sentence: "A white ___ flies high above the sandy boardwalk.", answer: "seagull", options: ["seagull", "squirrel", "sparrow", "swallow"] },
+      { id: 154, category: "Ocean & Beach", emojis: "⚓ 🚢 🌊", sentence: "The captain drops the heavy iron ___ into the bay.", answer: "anchor", options: ["anchor", "acorn", "apron", "apple"] },
+      { id: 155, category: "Ocean & Beach", emojis: "🟡 🌊 👀", sentence: "We ride inside a yellow ___ to explore the deep sea.", answer: "submarine", options: ["submarine", "tangerine", "trampoline", "tambourine"] },
+      { id: 156, category: "Ocean & Beach", emojis: "🌴 🥥 🏝️", sentence: "Fuzzy brown ___ grow high up in the palm tree.", answer: "coconuts", options: ["coconuts", "carrots", "cupcakes", "crayons"] },
+      { id: 157, category: "Ocean & Beach", emojis: "🏖️ 🧺 ☀️", sentence: "Zoey spreads a striped ___ on the warm beach sand.", answer: "towel", options: ["towel", "tower", "trowel", "tunnel"] },
+      { id: 158, category: "Ocean & Beach", emojis: "🦪 ✨ 🌊", sentence: "A smooth shiny white ___ hides inside the oyster shell.", answer: "pearl", options: ["pearl", "peach", "plant", "plate"] },
+      { id: 159, category: "Ocean & Beach", emojis: "🦭 🪨 👏", sentence: "The playful ___ barks and claps its flippers.", answer: "seal", options: ["seal", "snail", "swan", "sheep"] },
+      { id: 160, category: "Ocean & Beach", emojis: "🛟 🏊 🌊", sentence: "The watchful ___ sits on a tall chair by the water.", answer: "lifeguard", options: ["lifeguard", "lampshade", "lunchbox", "ladybug"] },
+
+      // --- 161 to 180: School & Art ---
+      { id: 161, category: "School & Art", emojis: "🖍️ 🌈 📄", sentence: "Zoey draws a bright rainbow with her wax ___.", answer: "crayons", options: ["crayons", "carrots", "curtains", "cushions"] },
+      { id: 162, category: "School & Art", emojis: "🎒 📚 🏫", sentence: "Zip up your ___ before walking to the school bus.", answer: "backpack", options: ["backpack", "bathtub", "baseball", "birdhouse"] },
+      { id: 163, category: "School & Art", emojis: "🖌️ 🎨 🖼️", sentence: "She dips her ___ into blue watercolor paint.", answer: "paintbrush", options: ["paintbrush", "toothbrush", "hairbrush", "pinecone"] },
+      { id: 164, category: "School & Art", emojis: "✂️ 📄 🌟", sentence: "Use safety ___ to cut out the paper star.", answer: "scissors", options: ["scissors", "scooters", "slippers", "stickers"] },
+      { id: 165, category: "School & Art", emojis: "✏️ 📝 💛", sentence: "He writes his name neatly with a sharp yellow ___.", answer: "pencil", options: ["pencil", "pretzel", "puddle", "pillow"] },
+      { id: 166, category: "School & Art", emojis: "📖 🐉 🏰", sentence: "We read an exciting ___ about dragons and castles.", answer: "storybook", options: ["storybook", "scrapbook", "strawberry", "skateboard"] },
+      { id: 167, category: "School & Art", emojis: "🌍 🏫 🧭", sentence: "Mira spins the round ___ to find different countries.", answer: "globe", options: ["globe", "glove", "glass", "grape"] },
+      { id: 168, category: "School & Art", emojis: "📏 ✏️ 📐", sentence: "Use a wooden ___ to draw a straight line.", answer: "ruler", options: ["ruler", "roller", "rooster", "eraser"] },
+      { id: 169, category: "School & Art", emojis: "🧴 📄 ✨", sentence: "A drop of sticky ___ holds the paper heart in place.", answer: "glue", options: ["glue", "glow", "goat", "gate"] },
+      { id: 170, category: "School & Art", emojis: "👩‍🏫 🏫 🍎", sentence: "Our kind ___ helps us learn new words every day.", answer: "teacher", options: ["teacher", "tractor", "toaster", "tiger"] },
+      { id: 171, category: "School & Art", emojis: "📓 🖊️ 💜", sentence: "Rumi writes new song lyrics in her spiral ___.", answer: "notebook", options: ["notebook", "necklace", "napkin", "needle"] },
+      { id: 172, category: "School & Art", emojis: "🩷 ✏️ 📄", sentence: "The pink rubber ___ rubs away pencil mistakes.", answer: "eraser", options: ["eraser", "elevator", "envelope", "eggplant"] },
+      { id: 173, category: "School & Art", emojis: "🎨 🌈 🖌️", sentence: "The artist mixes red and yellow on her wooden ___.", answer: "palette", options: ["palette", "pajamas", "pancake", "umpire"] },
+      { id: 174, category: "School & Art", emojis: "🏺 👐 🎨", sentence: "We shaped soft brown ___ into a little bowl.", answer: "clay", options: ["clay", "claw", "clam", "club"] },
+      { id: 175, category: "School & Art", emojis: "🚌 🟡 🏫", sentence: "The yellow school ___ stops at the corner every morning.", answer: "bus", options: ["bus", "bed", "box", "bag"] },
+      { id: 176, category: "School & Art", emojis: "📚 🤫 🏛️", sentence: "We whisper quietly while choosing books at the ___.", answer: "library", options: ["library", "laundry", "ladybug", "lemonade"] },
+      { id: 177, category: "School & Art", emojis: "🔬 🧫 🧪", sentence: "Scientists look at tiny cells through a ___.", answer: "microscope", options: ["microscope", "microphone", "motorcycle", " marshmallow"] },
+      { id: 178, category: "School & Art", emojis: "🧮 🔢 ➕", sentence: "We learn how to add numbers on the ___.", answer: "calculator", options: ["calculator", "caterpillar", "refrigerator", "alligator"] },
+      { id: 179, category: "School & Art", emojis: "⭐ 📓 😊", sentence: "Zoey earned a shiny gold ___ on her spelling page!", answer: "sticker", options: ["sticker", "sweater", "scooter", "slipper"] },
+      { id: 180, category: "School & Art", emojis: "🖼️ 🎨 🏛️", sentence: "Our class hung our colorful paintings on the ___.", answer: "easel", options: ["easel", "eagle", "engine", "acorn"] },
+
+      // --- 181 to 200: Cozy Home & Everyday Fun ---
+      { id: 181, category: "Cozy Home", emojis: "🛏️ ☁️ 😴", sentence: "Rumi rests her head on a soft fluffy ___.", answer: "pillow", options: ["pillow", "puddle", "piano", "potato"] },
+      { id: 182, category: "Cozy Home", emojis: "🛋️ 🧶 💜", sentence: "We snuggle under a warm knit ___ on the couch.", answer: "blanket", options: ["blanket", "basket", "bucket", "bracelet"] },
+      { id: 183, category: "Cozy Home", emojis: "🪥 🦷 ✨", sentence: "Put minty toothpaste on your ___ every night.", answer: "toothbrush", options: ["toothbrush", "paintbrush", "hairbrush", "tablecloth"] },
+      { id: 184, category: "Cozy Home", emojis: "⏰ ☀️ 🎶", sentence: "The bedside ___ rings at seven in the morning.", answer: "clock", options: ["clock", "cloud", "clown", "cloak"] },
+      { id: 185, category: "Cozy Home", emojis: "💡 📖 🛋️", sentence: "Turn on the reading ___ when the room gets dim.", answer: "lamp", options: ["lamp", "leaf", "lock", "limb"] },
+      { id: 186, category: "Cozy Home", emojis: "🪟 ☀️ 🌸", sentence: "Sunlight shines through the clean glass ___.", answer: "window", options: ["window", "walrus", "wagon", "whistle"] },
+      { id: 187, category: "Cozy Home", emojis: "🫖 🍵 💨", sentence: "Warm water whistles inside the shiny silver ___.", answer: "teapot", options: ["teapot", "turtle", "ticket", "trumpet"] },
+      { id: 188, category: "Cozy Home", emojis: "🧹 🏠 ✨", sentence: "Mira uses a ___ to sweep the kitchen floor.", answer: "broom", options: ["broom", "bread", "brush", "brick"] },
+      { id: 189, category: "Cozy Home", emojis: "🥿 🧸 🏠", sentence: "Zoey wears fuzzy bunny ___ around the house.", answer: "slippers", options: ["slippers", "scissors", "stickers", "scooters"] },
+      { id: 190, category: "Cozy Home", emojis: "🛁 🫧 🦆", sentence: "A yellow rubber duck floats in the warm ___.", answer: "bathtub", options: ["bathtub", "backpack", "birdbath", "baseball"] },
+      { id: 191, category: "Cozy Home", emojis: "🍞 🔥 🧈", sentence: "Warm golden bread pops up from the ___.", answer: "toaster", options: ["toaster", "tractor", "teacher", "trumpet"] },
+      { id: 192, category: "Cozy Home", emojis: "🧊 🥛 🍎", sentence: "Keep the milk and fruit cold inside the ___.", answer: "refrigerator", options: ["refrigerator", "roller coaster", "calculator", "alligator"] },
+      { id: 193, category: "Cozy Home", emojis: "🛋️ 📺 🍿", sentence: "The whole family sits together on the living room ___.", answer: "sofa", options: ["sofa", "soap", "soup", "sock"] },
+      { id: 194, category: "Cozy Home", emojis: "🧺 👕 🧦", sentence: "Put your clean folded socks into the laundry ___.", answer: "basket", options: ["basket", "blanket", "bucket", "bonnet"] },
+      { id: 195, category: "Cozy Home", emojis: "🪴 🌿 💧", sentence: "Rumi waters the green fern in its clay ___.", answer: "flowerpot", options: ["flowerpot", "flashlight", "footprint", "fireplace"] },
+      { id: 196, category: "Cozy Home", emojis: "🧣 ❄️ 🧥", sentence: "Wrap a warm wool ___ around your neck in winter.", answer: "scarf", options: ["scarf", "shark", "shelf", "shirt"] },
+      { id: 197, category: "Cozy Home", emojis: "🧤 ❄️ ⛄", sentence: "Keep your fingers warm inside cozy knit ___.", answer: "mittens", options: ["mittens", "kittens", "muffins", "mirrors"] },
+      { id: 198, category: "Cozy Home", emojis: "📬 ✉️ 🏠", sentence: "A birthday card arrived inside our front ___!", answer: "mailbox", options: ["mailbox", "lunchbox", "music box", "matchbox"] },
+      { id: 199, category: "Cozy Home", emojis: "🔥 🪵 🏠", sentence: "Logs crackle warmly inside the brick ___.", answer: "fireplace", options: ["fireplace", "flowerpot", "fishbowl", "footstep"] },
+      { id: 200, category: "Cozy Home", emojis: "🌙 ⭐ 😴", sentence: "The K-Pop Demon Hunters wear cozy ___ at bedtime!", answer: "pajamas", options: ["pajamas", "pancakes", "paintings", "peanuts"] }
+    ];
+
+    /*************************************************************************
+     * 2. PERSISTENT GAME STATE & LOCALSTORAGE
+     *************************************************************************/
+    const STORAGE_KEY = "rumi_kpop_word_quest_v2_state";
+    const APP_VERSION = "2.0.0";
+
+    const HERO_PROFILES = {
+      rumi: {
+        name: "Rumi",
+        badgeClass: "bg-fuchsia-600",
+        pitch: 1.18,
+        cheers: [
+          "Starlight power! You read that word like a K-Pop superstar!",
+          "Boom! The Gloomy Note turned into a happy melody!",
+          "Incredible reading! Let's sing the full sentence together!"
+        ],
+        prompts: [
+          "Tap a word to hear it & defeat the Gloomy Note!",
+          "Look at the emojis above! Which word fits the blank?",
+          "You've got this, hunter! Tap any word option to listen!"
+        ]
+      },
+      mira: {
+        name: "Mira",
+        badgeClass: "bg-cyan-600",
+        pitch: 1.08,
+        cheers: [
+          "Cyber-beat perfection! Your reading rhythm is unstoppable!",
+          "Awesome move! That word locked right into the groove!",
+          "High-five! Let's hear that whole sentence out loud!"
+        ],
+        prompts: [
+          "Check out the emoji clues! Tap a word to test the beat!",
+          "Ready to dance through this sentence? Pick the missing word!",
+          "Tap the emojis anytime if you want a vocal hint!"
+        ]
+      },
+      zoey: {
+        name: "Zoey",
+        badgeClass: "bg-amber-500",
+        pitch: 1.28,
+        cheers: [
+          "Yay!! Sparkle tambourine victory! You're amazing!",
+          "Woohoo! Another Shadow Note cheered up by your reading!",
+          "Super star reader! Listen to the whole sentence shine!"
+        ],
+        prompts: [
+          "Ooh, fun emojis! Which word completes our story?",
+          "Tap any of the 4 words to hear me say it!",
+          "Let's light up the stage with the right word!"
+        ]
+      }
+    };
+
+    let state = {
+      currentIndex: 0,
+      stars: 0,
+      streak: 0,
+      completedIds: [],
+      selectedHero: "rumi",
+      slowMode: false,
+      muted: false,
+      twoTapConfirm: false,
+      previewOption: null,
+      answeredCurrent: false,
+      customLiveUrl: "",
+      activeCategoryFilter: "ALL"
+    };
+
+    function loadSavedState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          state.currentIndex = Number.isInteger(parsed.currentIndex) && parsed.currentIndex >= 0 && parsed.currentIndex < SENTENCE_BANK.length ? parsed.currentIndex : 0;
+          state.stars = Number(parsed.stars) || 0;
+          state.streak = Number(parsed.streak) || 0;
+          state.completedIds = Array.isArray(parsed.completedIds) ? parsed.completedIds : [];
+          state.selectedHero = HERO_PROFILES[parsed.selectedHero] ? parsed.selectedHero : "rumi";
+          state.slowMode = Boolean(parsed.slowMode);
+          state.muted = Boolean(parsed.muted);
+          state.twoTapConfirm = Boolean(parsed.twoTapConfirm);
+          state.customLiveUrl = parsed.customLiveUrl || "";
+        }
+      } catch (e) {
+        console.warn("Could not read saved state:", e);
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          currentIndex: state.currentIndex,
+          stars: state.stars,
+          streak: state.streak,
+          completedIds: state.completedIds,
+          selectedHero: state.selectedHero,
+          slowMode: state.slowMode,
+          muted: state.muted,
+          twoTapConfirm: state.twoTapConfirm,
+          customLiveUrl: state.customLiveUrl
+        }));
+      } catch (e) {
+        console.warn("Could not save state:", e);
+      }
+    }
+
+    /*************************************************************************
+     * 3. WEB AUDIO SYNTHESIZER (100% Offline Chimes & Fanfare)
+     *************************************************************************/
+    let audioCtx = null;
+    function getAudioCtx() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) audioCtx = new AudioContextClass();
+      }
+      if (audioCtx && audioCtx.state === "suspended") {
+        audioCtx.resume().catch(() => {});
+      }
+      return audioCtx;
+    }
+
+    function playTone(freq, type = "sine", duration = 0.14, delay = 0, gainVal = 0.12) {
+      if (state.muted) return;
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      try {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+        gain.gain.setValueAtTime(gainVal, ctx.currentTime + delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + delay);
+        osc.stop(ctx.currentTime + delay + duration);
+      } catch (e) {}
+    }
+
+    function playPopSound() {
+      playTone(520, "triangle", 0.08, 0, 0.1);
+      playTone(680, "sine", 0.09, 0.04, 0.08);
+    }
+
+    function playVictoryFanfare() {
+      // K-Pop major 7th sparkle arpeggio
+      const notes = [523.25, 659.25, 783.99, 987.77, 1046.5];
+      notes.forEach((n, idx) => playTone(n, "triangle", 0.22, idx * 0.065, 0.14));
+    }
+
+    function playGentleTryAgain() {
+      playTone(300, "sine", 0.14, 0, 0.1);
+      playTone(250, "sine", 0.2, 0.1, 0.1);
+    }
+
+    /*************************************************************************
+     * 4. SPEECH SYNTHESIS (Reads Picked Option & Full Sentence w/ Highlight)
+     *************************************************************************/
+    let activeSpeechTimer = null;
+
+    function clearWordHighlights() {
+      if (activeSpeechTimer) {
+        clearInterval(activeSpeechTimer);
+        activeSpeechTimer = null;
+      }
+      document.querySelectorAll(".word-token").forEach(el => el.classList.remove("speaking-now"));
+    }
+
+    function speakText(text, onWordIndexCallback = null, onCompleteCallback = null) {
+      clearWordHighlights();
+      if (state.muted || !("speechSynthesis" in window)) {
+        if (onCompleteCallback) setTimeout(onCompleteCallback, 300);
+        return;
+      }
+
+      try {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        const hero = HERO_PROFILES[state.selectedHero] || HERO_PROFILES.rumi;
+        utter.rate = state.slowMode ? 0.68 : 0.92;
+        utter.pitch = hero.pitch;
+
+        // Pick a clear English voice if available
+        const voices = window.speechSynthesis.getVoices();
+        const preferred = voices.find(v => v.lang.startsWith("en") && (v.name.includes("Samantha") || v.name.includes("Google") || v.name.includes("Natural") || v.name.includes("Zira"))) || voices.find(v => v.lang.startsWith("en"));
+        if (preferred) utter.voice = preferred;
+
+        const words = text.trim().split(/\s+/);
+        let boundaryFired = false;
+
+        if (onWordIndexCallback) {
+          utter.onboundary = (event) => {
+            if (event.name === "word") {
+              boundaryFired = true;
+              const charIndex = event.charIndex;
+              const upTo = text.slice(0, charIndex);
+              const wordIdx = upTo.trim() ? upTo.trim().split(/\s+/).length : 0;
+              onWordIndexCallback(Math.min(wordIdx, words.length - 1));
+            }
+          };
+
+          // Fallback timer if browser does not fire onboundary events (common on mobile Safari/Android)
+          const msPerWord = state.slowMode ? 520 : 350;
+          let fallbackIdx = 0;
+          onWordIndexCallback(0);
+          activeSpeechTimer = setInterval(() => {
+            if (boundaryFired) return;
+            fallbackIdx++;
+            if (fallbackIdx < words.length) {
+              onWordIndexCallback(fallbackIdx);
+            } else {
+              clearInterval(activeSpeechTimer);
+              activeSpeechTimer = null;
+            }
+          }, msPerWord);
+        }
+
+        utter.onend = () => {
+          clearWordHighlights();
+          if (onCompleteCallback) onCompleteCallback();
+        };
+        utter.onerror = () => {
+          clearWordHighlights();
+          if (onCompleteCallback) onCompleteCallback();
+        };
+
+        window.speechSynthesis.speak(utter);
+      } catch (e) {
+        clearWordHighlights();
+        if (onCompleteCallback) onCompleteCallback();
+      }
+    }
+
+    function speakCurrentSentenceClue() {
+      const item = SENTENCE_BANK[state.currentIndex];
+      if (!item) return;
+      playPopSound();
+      if (state.answeredCurrent) {
+        readFullSentence(true);
+      } else {
+        const spokenClue = item.sentence.replace("___", "blank");
+        speakText(spokenClue);
+      }
+    }
+
+    function readFullSentence(useSolvedWord = true) {
+      const item = SENTENCE_BANK[state.currentIndex];
+      if (!item) return;
+      const fillWord = (useSolvedWord || state.answeredCurrent) ? item.answer : "blank";
+      const fullSentence = item.sentence.replace("___", fillWord);
+
+      const tokenEls = Array.from(document.querySelectorAll("#sentenceContainer .word-token"));
+      speakText(
+        fullSentence,
+        (wordIdx) => {
+          tokenEls.forEach((el, i) => {
+            if (i === wordIdx) el.classList.add("speaking-now");
+            else el.classList.remove("speaking-now");
+          });
+        },
+        () => {
+          tokenEls.forEach(el => el.classList.remove("speaking-now"));
+        }
+      );
+    }
+
+    /*************************************************************************
+     * 5. CORE GAMEPLAY UI & INTERACTION
+     *************************************************************************/
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function renderCurrentQuestion() {
+      clearWordHighlights();
+      state.answeredCurrent = false;
+      state.previewOption = null;
+
+      const item = SENTENCE_BANK[state.currentIndex];
+      if (!item) return;
+
+      // Update Header Counters
+      document.getElementById("levelNumDisplay").textContent = (state.currentIndex + 1);
+      document.getElementById("starsCountDisplay").textContent = state.stars;
+      document.getElementById("streakCountDisplay").textContent = state.streak;
+      document.getElementById("categoryText").textContent = item.category;
+      document.getElementById("emojiString").textContent = item.emojis;
+
+      // Reset Spirit Status Pill
+      const isAlreadyDone = state.completedIds.includes(item.id);
+      const spiritEmoji = document.getElementById("spiritEmoji");
+      const spiritLabel = document.getElementById("spiritLabel");
+      spiritEmoji.textContent = isAlreadyDone ? "🌟" : "👾";
+      spiritLabel.textContent = isAlreadyDone ? "Purified Note" : "Shadow Note";
+
+      // Reset Hero Prompt
+      const hero = HERO_PROFILES[state.selectedHero];
+      const promptMsg = hero.prompts[state.currentIndex % hero.prompts.length];
+      setCompanionDialogue(promptMsg);
+
+      // Hide Next Stage Button until answered
+      document.getElementById("nextQuestionBtn").classList.add("hidden");
+
+      // Render Sentence Tokens with Blank Slot
+      renderSentenceTokens(null);
+
+      // Render 4 Shuffled Word Options
+      const grid = document.getElementById("optionsGrid");
+      grid.innerHTML = "";
+      const shuffledOptions = shuffleArray(item.options);
+
+      shuffledOptions.forEach((word) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.dataset.word = word;
+        btn.className = "option-card bg-gradient-to-b from-purple-700 to-indigo-900 hover:from-purple-600 hover:to-indigo-800 border-2 border-pink-400/70 rounded-2xl py-3 px-3 text-white font-display font-bold text-base sm:text-lg flex items-center justify-between gap-2 shadow-lg";
+        btn.innerHTML = `
+          <span class="truncate mx-auto">${word}</span>
+          <i class="ph-fill ph-speaker-high text-xs text-pink-300 opacity-80 shrink-0"></i>
+        `;
+        btn.onclick = () => handleOptionTap(word, btn);
+        grid.appendChild(btn);
+      });
+    }
+
+    function renderSentenceTokens(filledWord = null) {
+      const item = SENTENCE_BANK[state.currentIndex];
+      const container = document.getElementById("sentenceContainer");
+      container.innerHTML = "";
+
+      // Split sentence into words while preserving the ___ slot
+      const rawWords = item.sentence.split(" ");
+      rawWords.forEach((rawToken) => {
+        if (rawToken.includes("___")) {
+          const punctuation = rawToken.replace("___", "");
+          if (filledWord) {
+            // Split multi-word answers (like "ice cream") into individual highlightable tokens
+            const parts = filledWord.split(" ");
+            parts.forEach((part, pIdx) => {
+              const span = document.createElement("span");
+              span.className = "word-token font-display font-extrabold text-lg sm:text-xl px-2.5 py-0.5 rounded-xl bg-emerald-500 text-white shadow-sm border border-emerald-300";
+              span.textContent = part + (pIdx === parts.length - 1 ? punctuation : "");
+              container.appendChild(span);
+            });
+          } else {
+            const slot = document.createElement("span");
+            slot.id = "blankSlotEl";
+            slot.className = "word-token blank-slot inline-flex items-center justify-center min-w-[96px] sm:min-w-[116px] px-3 py-1 rounded-xl bg-purple-100 border-2 border-dashed border-fuchsia-600 text-fuchsia-700 font-display font-extrabold text-base sm:text-lg";
+            slot.textContent = state.previewOption ? state.previewOption + punctuation : " ? " + punctuation;
+            container.appendChild(slot);
+          }
+        } else {
+          const span = document.createElement("span");
+          span.className = "word-token font-bold text-lg sm:text-xl text-indigo-950";
+          span.textContent = rawToken;
+          container.appendChild(span);
+        }
+      });
+    }
+
+    function handleOptionTap(selectedWord, btnElement) {
+      const item = SENTENCE_BANK[state.currentIndex];
+      if (!item) return;
+
+      // If already solved, tapping any option still reads that word aloud for practice
+      if (state.answeredCurrent) {
+        playPopSound();
+        speakText(selectedWord);
+        return;
+      }
+
+      // Two-Tap Confirm Mode: 1st tap speaks word & previews it in the blank; 2nd tap submits
+      if (state.twoTapConfirm && state.previewOption !== selectedWord) {
+        state.previewOption = selectedWord;
+        playPopSound();
+        speakText(selectedWord);
+        document.querySelectorAll("#optionsGrid .option-card").forEach(b => b.classList.remove("selected-preview"));
+        btnElement.classList.add("selected-preview");
+        renderSentenceTokens(null);
+        setCompanionDialogue(`Tap "${selectedWord}" again to lock it in!`);
+        return;
+      }
+
+      // Check if Correct
+      if (selectedWord === item.answer) {
+        state.answeredCurrent = true;
+        state.stars += 1;
+        state.streak += 1;
+        if (!state.completedIds.includes(item.id)) {
+          state.completedIds.push(item.id);
+        }
+        saveState();
+
+        // Update UI
+        document.getElementById("starsCountDisplay").textContent = state.stars;
+        document.getElementById("streakCountDisplay").textContent = state.streak;
+        btnElement.classList.remove("selected-preview");
+        btnElement.classList.add("correct-choice");
+
+        // Purify Cute Spirit
+        const spiritEmoji = document.getElementById("spiritEmoji");
+        spiritEmoji.textContent = "💖";
+        spiritEmoji.classList.add("scale-125");
+        setTimeout(() => spiritEmoji.classList.remove("scale-125"), 400);
+        document.getElementById("spiritLabel").textContent = "Happy Melody!";
+
+        // Make Hero Jump & Cheer
+        const heroAvatar = document.getElementById(`avatar-${state.selectedHero}`);
+        if (heroAvatar) {
+          heroAvatar.classList.add("char-jump");
+          setTimeout(() => heroAvatar.classList.remove("char-jump"), 1600);
+        }
+
+        const hero = HERO_PROFILES[state.selectedHero];
+        const cheer = hero.cheers[Math.floor(Math.random() * hero.cheers.length)];
+        setCompanionDialogue(cheer);
+
+        // Fill Blank & Show Next Button
+        renderSentenceTokens(item.answer);
+        document.getElementById("nextQuestionBtn").classList.remove("hidden");
+
+        // Sound + Confetti
+        playVictoryFanfare();
+        fireConfettiBurst();
+
+        // First read the chosen option aloud, then automatically read the full sentence with word highlighting!
+        speakText(selectedWord, null, () => {
+          setTimeout(() => {
+            if (state.answeredCurrent) {
+              readFullSentence(true);
+            }
+          }, 260);
+        });
+      } else {
+        // Wrong Choice: Read the chosen word aloud so the child learns it, then gentle shake
+        state.streak = 0;
+        saveState();
+        document.getElementById("streakCountDisplay").textContent = state.streak;
+
+        btnElement.classList.remove("selected-preview");
+        btnElement.classList.add("wrong-choice", "shake-wrong");
+        setTimeout(() => btnElement.classList.remove("shake-wrong"), 500);
+
+        playGentleTryAgain();
+        speakText(selectedWord);
+        setCompanionDialogue(`That says "${selectedWord}". Try another word!`);
+      }
+    }
+
+    function goToNextQuestion() {
+      playPopSound();
+      state.currentIndex = (state.currentIndex + 1) % SENTENCE_BANK.length;
+      saveState();
+      renderCurrentQuestion();
+    }
+
+    function selectHero(heroKey) {
+      if (!HERO_PROFILES[heroKey]) return;
+      state.selectedHero = heroKey;
+      saveState();
+      playPopSound();
+
+      // Update Card Highlight
+      ["rumi", "mira", "zoey"].forEach(k => {
+        const card = document.getElementById(`heroCard-${k}`);
+        if (!card) return;
+        if (k === heroKey) {
+          card.classList.add("ring-2", "ring-yellow-300", "scale-[1.03]");
+        } else {
+          card.classList.remove("ring-2", "ring-yellow-300", "scale-[1.03]");
+        }
+      });
+
+      const hero = HERO_PROFILES[heroKey];
+      const badge = document.getElementById("activeSpeakerBadge");
+      badge.textContent = hero.name;
+      badge.className = `px-2 py-0.5 rounded-full text-[11px] font-display font-bold text-white uppercase tracking-wider shrink-0 ${hero.badgeClass}`;
+      setCompanionDialogue(`${hero.name} is cheering for you! Let's read together!`);
+    }
+
+    function setCompanionDialogue(text) {
+      const el = document.getElementById("companionDialogue");
+      if (el) el.textContent = text;
+    }
+
+    function toggleTurtleSpeed() {
+      state.slowMode = !state.slowMode;
+      saveState();
+      updateHeaderControlsUI();
+      showToast(state.slowMode ? "🐢 Slow Turtle Reading Voice ON" : "🐇 Normal Reading Voice ON");
+    }
+
+    function toggleMute() {
+      state.muted = !state.muted;
+      if (state.muted && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+      saveState();
+      updateHeaderControlsUI();
+      showToast(state.muted ? "🔇 Voice Muted" : "🔊 Voice & Sound Active");
+    }
+
+    function toggleConfirmMode() {
+      state.twoTapConfirm = !state.twoTapConfirm;
+      state.previewOption = null;
+      saveState();
+      updateHeaderControlsUI();
+      showToast(state.twoTapConfirm ? "2-Tap Confirm Mode: Tap once to listen, twice to pick!" : "Instant Tap Mode ON");
+    }
+
+    function updateHeaderControlsUI() {
+      document.getElementById("speedIcon").textContent = state.slowMode ? "🐢" : "🐇";
+      const muteIcon = document.getElementById("muteIcon");
+      muteIcon.className = state.muted ? "ph-fill ph-speaker-slash text-rose-400" : "ph-fill ph-speaker-high text-cyan-300";
+      document.getElementById("tapModeLabel").textContent = state.twoTapConfirm ? "2-Tap Confirm ✅" : "Instant Tap 🔊";
+    }
+
+    /*************************************************************************
+     * 6. 200 STAGES MODAL & CATEGORY FILTER
+     *************************************************************************/
+    function openLevelsModal() {
+      playPopSound();
+      renderCategoryFilterBar();
+      renderLevelsGrid();
+      document.getElementById("modalCompletedCount").textContent = state.completedIds.length;
+      const modal = document.getElementById("levelsModal");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+
+    function closeLevelsModal() {
+      const modal = document.getElementById("levelsModal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+
+    function renderCategoryFilterBar() {
+      const bar = document.getElementById("categoryFilterBar");
+      const categories = ["ALL", ...new Set(SENTENCE_BANK.map(s => s.category))];
+      bar.innerHTML = "";
+      categories.forEach(cat => {
+        const btn = document.createElement("button");
+        const active = state.activeCategoryFilter === cat;
+        btn.className = `px-2.5 py-1 rounded-full text-[11px] font-display font-bold shrink-0 border transition-all ${
+          active
+            ? "bg-pink-500 text-white border-yellow-300 shadow"
+            : "bg-indigo-900/80 text-indigo-200 border-indigo-700 hover:border-pink-400"
+        }`;
+        btn.textContent = cat === "ALL" ? "All 200" : cat;
+        btn.onclick = () => {
+          state.activeCategoryFilter = cat;
+          renderCategoryFilterBar();
+          renderLevelsGrid();
+        };
+        bar.appendChild(btn);
+      });
+    }
+
+    function renderLevelsGrid() {
+      const container = document.getElementById("levelsGridContainer");
+      container.innerHTML = "";
+      SENTENCE_BANK.forEach((item, idx) => {
+        if (state.activeCategoryFilter !== "ALL" && item.category !== state.activeCategoryFilter) return;
+        const solved = state.completedIds.includes(item.id);
+        const isCurrent = idx === state.currentIndex;
+        const btn = document.createElement("button");
+        btn.className = `p-2 rounded-2xl border-2 flex flex-col items-center justify-center gap-0.5 transition-all ${
+          isCurrent
+            ? "bg-gradient-to-br from-pink-500 to-purple-600 border-yellow-300 text-white shadow-lg scale-105"
+            : solved
+            ? "bg-emerald-900/70 border-emerald-400/70 text-emerald-100"
+            : "bg-indigo-900/70 border-indigo-700 text-indigo-200 hover:border-pink-400"
+        }`;
+        btn.innerHTML = `
+          <span class="text-xs font-display font-extrabold">#${idx + 1}</span>
+          <span class="text-sm">${item.emojis.split(" ")[0]}</span>
+          <span class="text-[9px] font-bold truncate max-w-full opacity-90">${solved ? "★ Solved" : item.answer}</span>
+        `;
+        btn.onclick = () => {
+          state.currentIndex = idx;
+          saveState();
+          closeLevelsModal();
+          renderCurrentQuestion();
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    function resetProgressPrompt() {
+      state.stars = 0;
+      state.streak = 0;
+      state.completedIds = [];
+      state.currentIndex = 0;
+      saveState();
+      renderLevelsGrid();
+      document.getElementById("modalCompletedCount").textContent = "0";
+      renderCurrentQuestion();
+      showToast("Progress reset! Ready for a fresh 200-stage quest!");
+    }
+
+    /*************************************************************************
+     * 7. CUSTOM HIGH-RES APP ICON GENERATOR (192x192 & 512x512 Canvas PNG)
+     *************************************************************************/
+    const generatedIcons = {
+      png192: "",
+      png512: ""
+    };
+
+    function generateAppIconPng(size = 512) {
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d");
+
+      // Background Neon K-Pop Squircle Gradient
+      const grad = ctx.createLinearGradient(0, 0, size, size);
+      grad.addColorStop(0, "#ec4899");
+      grad.addColorStop(0.5, "#7e22ce");
+      grad.addColorStop(1, "#1e1b4b");
+
+      const r = size * 0.22;
+      ctx.beginPath();
+      ctx.moveTo(r, 0);
+      ctx.lineTo(size - r, 0);
+      ctx.quadraticCurveTo(size, 0, size, r);
+      ctx.lineTo(size, size - r);
+      ctx.quadraticCurveTo(size, size, size - r, size);
+      ctx.lineTo(r, size);
+      ctx.quadraticCurveTo(0, size, 0, size - r);
+      ctx.lineTo(0, r);
+      ctx.quadraticCurveTo(0, 0, r, 0);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Golden Dashed Halo Ring
+      ctx.save();
+      ctx.strokeStyle = "#fde047";
+      ctx.lineWidth = size * 0.025;
+      ctx.setLineDash([size * 0.05, size * 0.03]);
+      ctx.beginPath();
+      ctx.arc(size * 0.5, size * 0.48, size * 0.38, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+
+      // Demon-Hunter Cat-Ear Crown Horns
+      ctx.fillStyle = "#f43f5e";
+      ctx.strokeStyle = "#fde047";
+      ctx.lineWidth = size * 0.022;
+
+      // Left Horn
+      ctx.beginPath();
+      ctx.moveTo(size * 0.22, size * 0.38);
+      ctx.lineTo(size * 0.30, size * 0.16);
+      ctx.lineTo(size * 0.42, size * 0.31);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Right Horn
+      ctx.beginPath();
+      ctx.moveTo(size * 0.78, size * 0.38);
+      ctx.lineTo(size * 0.70, size * 0.16);
+      ctx.lineTo(size * 0.58, size * 0.31);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Center 5-Point Starlight Emblem
+      const cx = size * 0.5;
+      const cy = size * 0.47;
+      const outerR = size * 0.24;
+      const innerR = size * 0.11;
+      ctx.beginPath();
+      for (let i = 0; i < 10; i++) {
+        const angle = (Math.PI / 5) * i - Math.PI / 2;
+        const rad = i % 2 === 0 ? outerR : innerR;
+        const x = cx + Math.cos(angle) * rad;
+        const y = cy + Math.sin(angle) * rad;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fillStyle = "#fde047";
+      ctx.fill();
+      ctx.lineWidth = size * 0.02;
+      ctx.strokeStyle = "#ffffff";
+      ctx.stroke();
+
+      // Bottom "RUMI" Title Label
+      ctx.fillStyle = "#ffffff";
+      ctx.font = `900 ${Math.round(size * 0.17)}px Fredoka, Nunito, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("RUMI", size * 0.5, size * 0.84);
+
+      return canvas.toDataURL("image/png");
+    }
+
+    function initAppIcons() {
+      generatedIcons.png192 = generateAppIconPng(192);
+      generatedIcons.png512 = generateAppIconPng(512);
+
+      const fav = document.getElementById("dynamicFavicon");
+      const apple = document.getElementById("dynamicAppleIcon");
+      const footerImg = document.getElementById("footerAppIconImg");
+      const modalImg = document.getElementById("modalAppIconPreview");
+
+      if (fav) fav.href = generatedIcons.png192;
+      if (apple) apple.href = generatedIcons.png192;
+      if (footerImg) footerImg.src = generatedIcons.png192;
+      if (modalImg) modalImg.src = generatedIcons.png192;
+    }
+
+    /*************************************************************************
+     * 8. FULL OFFLINE AVAILABILITY & AUTOMATIC SERVICE WORKER UPDATE ENGINE
+     *************************************************************************/
+    let swRegistration = null;
+    let pendingWorker = null;
+    let deferredInstallPrompt = null;
+
+    function buildServiceWorkerSource() {
+      return `/* Rumi's K-Pop Demon Hunters Word Quest - Offline & Auto-Update Service Worker v${APP_VERSION} */
+const CACHE_NAME = 'rumi-word-quest-v${APP_VERSION}';
+const CORE_ASSETS = [
+  './',
+  './index.html',
+  './manifest.json',
+  './icons/icon-192.png',
+  './icons/icon-512.png'
+];
+
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(CORE_ASSETS).catch(() => {});
+    })
+  );
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
+      )
+    ).then(() => self.clients.claim())
+  );
+});
+
+/* Stale-While-Revalidate + Offline Cache Fallback so the app works 100% offline & auto-updates in background */
+self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      const networkFetch = fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const cloned = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cloned));
+          }
+          return networkResponse;
+        })
+        .catch(() => cachedResponse || caches.match('./index.html'));
+
+      return cachedResponse || networkFetch;
+    })
+  );
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+`;
+    }
+
+    function buildManifestObject() {
+      return {
+        name: "Rumi's K-Pop Demon Hunters: Word Star (200 Stages)",
+        short_name: "Rumi Word Star",
+        description: "Mobile-first K-Pop Demon Hunters children's reading game featuring Rumi, Mira & Zoey with 200 emoji sentences, voice synthesis, full offline play, and auto-updates.",
+        version: APP_VERSION,
+        start_url: "./index.html",
+        scope: "./",
+        display: "standalone",
+        orientation: "portrait",
+        background_color: "#1e1b4b",
+        theme_color: "#2e1065",
+        icons: [
+          {
+            src: "icons/icon-192.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "any maskable"
+          },
+          {
+            src: "icons/icon-512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any maskable"
+          }
+        ]
+      };
+    }
+
+    function injectDynamicManifest() {
+      try {
+        const manifest = buildManifestObject();
+        manifest.icons = [
+          { src: generatedIcons.png192, sizes: "192x192", type: "image/png", purpose: "any maskable" },
+          { src: generatedIcons.png512, sizes: "512x512", type: "image/png", purpose: "any maskable" }
+        ];
+        const blob = new Blob([JSON.stringify(manifest, null, 2)], { type: "application/manifest+json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("link");
+        link.rel = "manifest";
+        link.href = url;
+        document.head.appendChild(link);
+      } catch (e) {}
+    }
+
+    async function initServiceWorkerAndAutoUpdate() {
+      updateNetworkStatusUI();
+      window.addEventListener("online", () => {
+        updateNetworkStatusUI();
+        showToast("🌐 Back Online! Checking for automatic stage updates...");
+        checkForAppUpdates(false);
+      });
+      window.addEventListener("offline", () => {
+        updateNetworkStatusUI();
+        showToast("⚡ Offline Mode Active! All 200 sentences are ready to play!");
+      });
+
+      if (!("serviceWorker" in navigator)) return;
+
+      try {
+        // Attempt registering ./sw.js first (when hosted from downloaded ZIP), fallback to inline Blob SW
+        try {
+          swRegistration = await navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" });
+        } catch (err) {
+          const swBlob = new Blob([buildServiceWorkerSource()], { type: "application/javascript" });
+          const swUrl = URL.createObjectURL(swBlob);
+          swRegistration = await navigator.serviceWorker.register(swUrl);
+        }
+
+        if (swRegistration) {
+          // Listen for new updates arriving in the background
+          swRegistration.addEventListener("updatefound", () => {
+            const newWorker = swRegistration.installing;
+            if (!newWorker) return;
+            newWorker.addEventListener("statechange", () => {
+              if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+                pendingWorker = newWorker;
+                showUpdateBanner();
+              }
+            });
+          });
+
+          // Automatically check for updates every 5 minutes when online
+          setInterval(() => {
+            if (navigator.onLine && swRegistration) {
+              swRegistration.update().catch(() => {});
+            }
+          }, 5 * 60 * 1000);
+        }
+
+        // Reload smoothly when a new service worker takes control
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener("controllerchange", () => {
+          if (refreshing) return;
+          refreshing = true;
+          showToast("✨ App Updated to Latest Version!");
+        });
+      } catch (e) {
+        // Running inside sandboxed preview iframe: localStorage + in-memory cache still guarantees offline play
+      }
+    }
+
+    function showUpdateBanner() {
+      const banner = document.getElementById("updateBanner");
+      if (banner) {
+        banner.classList.remove("hidden");
+        banner.classList.add("flex");
+      }
+    }
+
+    function applyPendingUpdate() {
+      const banner = document.getElementById("updateBanner");
+      if (banner) banner.classList.add("hidden");
+      if (pendingWorker) {
+        pendingWorker.postMessage({ type: "SKIP_WAITING" });
+      } else {
+        window.location.reload();
+      }
+    }
+
+    async function checkForAppUpdates(manual = true) {
+      const spinIcon = document.getElementById("updateSpinIcon");
+      const btnText = document.getElementById("checkUpdateBtnText");
+      if (spinIcon) spinIcon.classList.add("animate-spin");
+      if (btnText) btnText.textContent = "Checking...";
+
+      try {
+        if (swRegistration) {
+          await swRegistration.update();
+        }
+      } catch (e) {}
+
+      setTimeout(() => {
+        if (spinIcon) spinIcon.classList.remove("animate-spin");
+        if (btnText) btnText.textContent = "Up to Date (v" + APP_VERSION + ")";
+        if (manual) {
+          showToast("✨ Auto-Update Checked: You have the latest v" + APP_VERSION + " (200 Stages)!");
+        }
+      }, 650);
+    }
+
+    function updateNetworkStatusUI() {
+      const isOnline = navigator.onLine;
+      const dot = document.getElementById("onlineStatusDot");
+      const text = document.getElementById("onlineStatusText");
+      const footerDot = document.getElementById("footerNetBadge");
+      const modalPill = document.getElementById("modalNetworkPill");
+      const swBadge = document.getElementById("swStatusBadge");
+
+      if (isOnline) {
+        if (dot) dot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+        if (text) text.textContent = "AUTO";
+        if (footerDot) footerDot.className = "inline-block w-1.5 h-1.5 rounded-full bg-emerald-400";
+        if (modalPill) {
+          modalPill.textContent = "Online • Auto-Update Active";
+          modalPill.className = "px-2 py-0.5 text-[10px] rounded-full bg-emerald-500/30 border border-emerald-400 text-emerald-200 font-extrabold uppercase";
+        }
+        if (swBadge) swBadge.textContent = "Online + Cached";
+      } else {
+        if (dot) dot.className = "w-2 h-2 rounded-full bg-amber-400";
+        if (text) text.textContent = "OFFLINE";
+        if (footerDot) footerDot.className = "inline-block w-1.5 h-1.5 rounded-full bg-amber-400";
+        if (modalPill) {
+          modalPill.textContent = "Offline Mode • 200 Stages Ready";
+          modalPill.className = "px-2 py-0.5 text-[10px] rounded-full bg-amber-500/30 border border-amber-400 text-amber-200 font-extrabold uppercase";
+        }
+        if (swBadge) swBadge.textContent = "Offline Active";
+      }
+    }
+
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+    });
+
+    async function triggerPwaInstall() {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        await deferredInstallPrompt.userChoice;
+        deferredInstallPrompt = null;
+      } else {
+        showToast("📱 On iPhone/Android: Tap browser Share/Menu → 'Add to Home Screen'!");
+      }
+    }
+
+    /*************************************************************************
+     * 9. SHARE APP LINK, QR CODE & MODALS
+     *************************************************************************/
+    function getEffectiveAppUrl() {
+      if (state.customLiveUrl && state.customLiveUrl.trim()) {
+        return state.customLiveUrl.trim();
+      }
+      const href = window.location.href;
+      if (href.startsWith("http://") || href.startsWith("https://")) {
+        return href;
+      }
+      return "https://rumi-kpop-word-quest.netlify.app";
+    }
+
+    function updateUrlPreviewBar() {
+      const url = getEffectiveAppUrl();
+      const previewEl = document.getElementById("appUrlPreviewText");
+      if (previewEl) previewEl.textContent = url.replace(/^https?:\/\//, "");
+      const inputEl = document.getElementById("customLiveUrlInput");
+      if (inputEl && document.activeElement !== inputEl) {
+        inputEl.value = url;
+      }
+    }
+
+    function saveCustomLiveUrl() {
+      const input = document.getElementById("customLiveUrlInput");
+      if (!input) return;
+      let val = input.value.trim();
+      if (val && !/^https?:\/\//i.test(val)) {
+        val = "https://" + val;
+      }
+      state.customLiveUrl = val;
+      saveState();
+      updateUrlPreviewBar();
+      renderQrCode();
+      showToast("🔗 Public App Link Saved & QR Code Updated!");
+    }
+
+    function resetCustomLiveUrl() {
+      state.customLiveUrl = "";
+      saveState();
+      updateUrlPreviewBar();
+      renderQrCode();
+      showToast("Reset to default detected App URL!");
+    }
+
+    function renderQrCode() {
+      const box = document.getElementById("qrCodeContainer");
+      if (!box) return;
+      box.innerHTML = "";
+      const url = getEffectiveAppUrl();
+      if (typeof QRCode !== "undefined") {
+        try {
+          new QRCode(box, {
+            text: url,
+            width: 96,
+            height: 96,
+            colorDark: "#1e1b4b",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M
+          });
+          return;
+        } catch (e) {}
+      }
+      // Offline SVG QR Fallback badge if external QRCode CDN isn't cached yet
+      box.innerHTML = `
+        <svg viewBox="0 0 100 100" class="w-full h-full">
+          <rect width="100" height="100" fill="#fff"/>
+          <rect x="8" y="8" width="26" height="26" fill="none" stroke="#1e1b4b" stroke-width="6"/>
+          <rect x="16" y="16" width="10" height="10" fill="#1e1b4b"/>
+          <rect x="66" y="8" width="26" height="26" fill="none" stroke="#1e1b4b" stroke-width="6"/>
+          <rect x="74" y="16" width="10" height="10" fill="#1e1b4b"/>
+          <rect x="8" y="66" width="26" height="26" fill="none" stroke="#1e1b4b" stroke-width="6"/>
+          <rect x="16" y="74" width="10" height="10" fill="#1e1b4b"/>
+          <rect x="44" y="44" width="14" height="14" fill="#ec4899"/>
+          <rect x="64" y="64" width="10" height="10" fill="#1e1b4b"/>
+          <rect x="78" y="78" width="14" height="14" fill="#1e1b4b"/>
+        </svg>
+      `;
+    }
+
+    async function shareAppLink() {
+      const url = getEffectiveAppUrl();
+      const shareData = {
+        title: "Rumi's K-Pop Demon Hunters: Word Star (200 Stages)",
+        text: "Play Rumi, Mira & Zoey's 200-Stage K-Pop Demon Hunters Word Reading Game! Works offline too!",
+        url: url
+      };
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+          showToast("✨ Shared Rumi Word Star App!");
+          return;
+        } catch (err) {}
+      }
+      copyAppLink();
+    }
+
+    function copyAppLink() {
+      const url = getEffectiveAppUrl();
+      const tempInput = document.createElement("textarea");
+      tempInput.value = url;
+      tempInput.style.position = "fixed";
+      tempInput.style.opacity = "0";
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      try {
+        document.execCommand("copy");
+      } catch (e) {}
+      document.body.removeChild(tempInput);
+
+      const copyLabel = document.getElementById("copyBtnLabel");
+      if (copyLabel) {
+        copyLabel.textContent = "Copied!";
+        setTimeout(() => { copyLabel.textContent = "Copy"; }, 1800);
+      }
+      showToast("🔗 App Link Copied: " + url);
+    }
+
+    function openOnlineModal() {
+      playPopSound();
+      updateUrlPreviewBar();
+      updateNetworkStatusUI();
+      renderQrCode();
+      const m = document.getElementById("onlineModal");
+      m.classList.remove("hidden");
+      m.classList.add("flex");
+    }
+
+    function closeOnlineModal() {
+      const m = document.getElementById("onlineModal");
+      m.classList.add("hidden");
+      m.classList.remove("flex");
+    }
+
+    function openInfoModal() {
+      playPopSound();
+      const m = document.getElementById("infoModal");
+      m.classList.remove("hidden");
+      m.classList.add("flex");
+    }
+
+    function closeInfoModal() {
+      const m = document.getElementById("infoModal");
+      m.classList.add("hidden");
+      m.classList.remove("flex");
+    }
+
+    let toastTimer = null;
+    function showToast(message) {
+      const banner = document.getElementById("toastBanner");
+      const text = document.getElementById("toastText");
+      if (!banner || !text) return;
+      text.textContent = message;
+      banner.classList.remove("opacity-0", "-translate-y-4");
+      banner.classList.add("opacity-100", "translate-y-0");
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        banner.classList.add("opacity-0", "-translate-y-4");
+        banner.classList.remove("opacity-100", "translate-y-0");
+      }, 2800);
+    }
+
+    /*************************************************************************
+     * 10. 100% OFFLINE-CAPABLE PURE-JS ZIP GENERATOR + JSZIP SUPPORT
+     *     (Downloads complete deployable PWA bundle even when offline!)
+     *************************************************************************/
+    function dataUrlToUint8Array(dataUrl) {
+      const base64 = dataUrl.split(",")[1] || "";
+      const binStr = atob(base64);
+      const bytes = new Uint8Array(binStr.length);
+      for (let i = 0; i < binStr.length; i++) {
+        bytes[i] = binStr.charCodeAt(i);
+      }
+      return bytes;
+    }
+
+    // Pure JavaScript CRC32 + Uncompressed ZIP Builder (Zero external library needed)
+    function createPureJsZipBlob(fileEntries) {
+      const crcTable = new Uint32Array(256);
+      for (let n = 0; n < 256; n++) {
+        let c = n;
+        for (let k = 0; k < 8; k++) {
+          c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
+        }
+        crcTable[n] = c >>> 0;
+      }
+
+      function crc32(bytes) {
+        let c = 0xffffffff;
+        for (let i = 0; i < bytes.length; i++) {
+          c = crcTable[(c ^ bytes[i]) & 0xff] ^ (c >>> 8);
+        }
+        return (c ^ 0xffffffff) >>> 0;
+      }
+
+      const encoder = new TextEncoder();
+      const localParts = [];
+      const centralParts = [];
+      let offset = 0;
+
+      fileEntries.forEach((entry) => {
+        const nameBytes = encoder.encode(entry.name);
+        const dataBytes = entry.data instanceof Uint8Array ? entry.data : encoder.encode(String(entry.data));
+        const crc = crc32(dataBytes);
+        const size = dataBytes.length;
+
+        // Local file header (30 bytes + file name)
+        const localHeader = new Uint8Array(30 + nameBytes.length);
+        const lv = new DataView(localHeader.buffer);
+        lv.setUint32(0, 0x04034b50, true);
+        lv.setUint16(4, 20, true);
+        lv.setUint16(6, 0, true);
+        lv.setUint16(8, 0, true); // Store (0 = uncompressed)
+        lv.setUint16(10, 0, true);
+        lv.setUint16(12, 0, true);
+        lv.setUint32(14, crc, true);
+        lv.setUint32(18, size, true);
+        lv.setUint32(22, size, true);
+        lv.setUint16(26, nameBytes.length, true);
+        lv.setUint16(28, 0, true);
+        localHeader.set(nameBytes, 30);
+
+        localParts.push(localHeader, dataBytes);
+
+        // Central directory header (46 bytes + file name)
+        const centralHeader = new Uint8Array(46 + nameBytes.length);
+        const cv = new DataView(centralHeader.buffer);
+        cv.setUint32(0, 0x02014b50, true);
+        cv.setUint16(4, 20, true);
+        cv.setUint16(6, 20, true);
+        cv.setUint16(8, 0, true);
+        cv.setUint16(10, 0, true);
+        cv.setUint16(12, 0, true);
+        cv.setUint16(14, 0, true);
+        cv.setUint32(16, crc, true);
+        cv.setUint32(20, size, true);
+        cv.setUint32(24, size, true);
+        cv.setUint16(28, nameBytes.length, true);
+        cv.setUint16(30, 0, true);
+        cv.setUint16(32, 0, true);
+        cv.setUint16(34, 0, true);
+        cv.setUint16(36, 0, true);
+        cv.setUint32(38, 0, true);
+        cv.setUint32(42, offset, true);
+        centralHeader.set(nameBytes, 46);
+
+        centralParts.push(centralHeader);
+        offset += localHeader.length + size;
+      });
+
+      const centralSize = centralParts.reduce((acc, arr) => acc + arr.length, 0);
+      const eocd = new Uint8Array(22);
+      const ev = new DataView(eocd.buffer);
+      ev.setUint32(0, 0x06054b50, true);
+      ev.setUint16(4, 0, true);
+      ev.setUint16(6, 0, true);
+      ev.setUint16(8, fileEntries.length, true);
+      ev.setUint16(10, fileEntries.length, true);
+      ev.setUint32(12, centralSize, true);
+      ev.setUint32(16, offset, true);
+      ev.setUint16(20, 0, true);
+
+      return new Blob([...localParts, ...centralParts, eocd], { type: "application/zip" });
+    }
+
+    async function downloadPwaZip() {
+      playPopSound();
+      showToast("📦 Packaging 200-Stage Offline & Auto-Update PWA .ZIP...");
+
+      const htmlContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+      const manifestContent = JSON.stringify(buildManifestObject(), null, 2);
+      const swContent = buildServiceWorkerSource();
+      const headersContent = `/sw.js\n  Cache-Control: no-cache, no-store, must-revalidate\n/manifest.json\n  Content-Type: application/manifest+json\n`;
+      const vercelContent = JSON.stringify({
+        headers: [
+          {
+            source: "/sw.js",
+            headers: [{ key: "Cache-Control", value: "no-cache, no-store, must-revalidate" }]
+          }
+        ]
+      }, null, 2);
+      const readmeContent = `RUMI'S K-POP DEMON HUNTERS: WORD STAR PWA (v${APP_VERSION} - 200 STAGES)
+======================================================================
+Included in this ready-to-host Progressive Web App bundle:
+- index.html        (Complete mobile-first game with 200 emoji sentences, Rumi/Mira/Zoey SVG heroes, & speech synthesis)
+- sw.js             (Offline-First + Automatic Update Service Worker v${APP_VERSION})
+- manifest.json     (Installable PWA Web App Manifest)
+- icons/icon-192.png & icons/icon-512.png (Custom K-Pop Demon Hunters App Icons)
+- _headers & vercel.json (Zero-config headers ensuring sw.js checks for automatic updates immediately)
+
+HOW TO HOST ONLINE FOR FREE IN 30 SECONDS:
+1. Go to https://app.netlify.com/drop (or Vercel / Cloudflare Pages / GitHub Pages).
+2. Drag and drop this entire ZIP file (or extracted folder).
+3. Open your live HTTPS link on any mobile phone or tablet!
+4. When you deploy an updated ZIP in the future, installed apps automatically detect and apply the update!
+`;
+
+      const icon192Bytes = dataUrlToUint8Array(generatedIcons.png192);
+      const icon512Bytes = dataUrlToUint8Array(generatedIcons.png512);
+
+      let zipBlob = null;
+
+      if (typeof JSZip !== "undefined") {
+        try {
+          const zip = new JSZip();
+          zip.file("index.html", htmlContent);
+          zip.file("manifest.json", manifestContent);
+          zip.file("sw.js", swContent);
+          zip.file("_headers", headersContent);
+          zip.file("vercel.json", vercelContent);
+          zip.file(".nojekyll", "");
+          zip.file("README.txt", readmeContent);
+          zip.file("icons/icon-192.png", icon192Bytes);
+          zip.file("icons/icon-512.png", icon512Bytes);
+          zipBlob = await zip.generateAsync({ type: "blob" });
+        } catch (e) {}
+      }
+
+      if (!zipBlob) {
+        zipBlob = createPureJsZipBlob([
+          { name: "index.html", data: htmlContent },
+          { name: "manifest.json", data: manifestContent },
+          { name: "sw.js", data: swContent },
+          { name: "_headers", data: headersContent },
+          { name: "vercel.json", data: vercelContent },
+          { name: ".nojekyll", data: "" },
+          { name: "README.txt", data: readmeContent },
+          { name: "icons/icon-192.png", data: icon192Bytes },
+          { name: "icons/icon-512.png", data: icon512Bytes }
+        ]);
+      }
+
+      const downloadUrl = URL.createObjectURL(zipBlob);
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      a.download = "rumi-kpop-demon-hunters-pwa.zip";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(downloadUrl), 4000);
+      showToast("✅ Downloaded rumi-kpop-demon-hunters-pwa.zip!");
+    }
+
+    /*************************************************************************
+     * 11. CONFETTI CELEBRATION ENGINE
+     *************************************************************************/
+    const confettiCanvas = document.getElementById("confettiCanvas");
+    const confettiCtx = confettiCanvas.getContext("2d");
+    let confettiParticles = [];
+    let confettiAnimId = null;
+
+    function resizeConfettiCanvas() {
+      confettiCanvas.width = window.innerWidth;
+      confettiCanvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeConfettiCanvas);
+    resizeConfettiCanvas();
+
+    function fireConfettiBurst() {
+      const colors = ["#ec4899", "#fde047", "#22d3ee", "#a855f7", "#34d399", "#fb7185"];
+      for (let i = 0; i < 48; i++) {
+        confettiParticles.push({
+          x: window.innerWidth / 2,
+          y: window.innerHeight * 0.45,
+          vx: (Math.random() - 0.5) * 14,
+          vy: (Math.random() - 0.85) * 14,
+          size: Math.random() * 7 + 5,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rot: Math.random() * Math.PI * 2,
+          vRot: (Math.random() - 0.5) * 0.25,
+          life: 1
+        });
+      }
+      if (!confettiAnimId) animateConfetti();
+    }
+
+    function animateConfetti() {
+      confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      confettiParticles.forEach((p) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.35; // gravity
+        p.rot += p.vRot;
+        p.life -= 0.016;
+
+        confettiCtx.save();
+        confettiCtx.translate(p.x, p.y);
+        confettiCtx.rotate(p.rot);
+        confettiCtx.globalAlpha = Math.max(0, p.life);
+        confettiCtx.fillStyle = p.color;
+        confettiCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.65);
+        confettiCtx.restore();
+      });
+
+      confettiParticles = confettiParticles.filter(p => p.life > 0);
+      if (confettiParticles.length > 0) {
+        confettiAnimId = requestAnimationFrame(animateConfetti);
+      } else {
+        confettiAnimId = null;
+        confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      }
+    }
+
+    /*************************************************************************
+     * 12. INITIALIZE APPLICATION ON LOAD
+     *************************************************************************/
+    window.onload = function () {
+      loadSavedState();
+      initAppIcons();
+      injectDynamicManifest();
+      updateHeaderControlsUI();
+      selectHero(state.selectedHero);
+      renderCurrentQuestion();
+      updateUrlPreviewBar();
+      initServiceWorkerAndAutoUpdate();
+
+      // Pre-warm speechSynthesis voices on mobile
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.getVoices();
+      }
+    };
+  </script>
+</body>
+</html>
